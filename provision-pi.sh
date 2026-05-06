@@ -9,8 +9,8 @@ IP_ADDRESS=${3:-10.0.0.11}
 GATEWAY="10.0.0.1"
 DNS_SERVERS="1.1.1.1 8.8.8.8"
 
-USERNAME="pi"
-PASSWORD="changeme"
+USERNAME=${1:-pi}
+PASSWORD=${1:-raspberry}
 
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
 WORKDIR="/tmp/pi-image"
