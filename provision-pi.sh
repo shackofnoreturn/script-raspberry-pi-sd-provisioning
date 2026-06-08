@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+
 ### ===== CONFIG =====
 HOSTNAME=${1:-pi-node}
 DEVICE=${2:-/dev/sdX}
-IP_ADDRESS=${3:-10.0.0.11}
+IP_ADDRESS=${3:-10.0.0.101}
 
 GATEWAY="10.0.0.1"
-DNS_SERVERS="1.1.1.1 8.8.8.8"
+DNS_SERVERS="10.0.0.1"
 
-USERNAME=${1:-pi}
-PASSWORD=${1:-raspberry}
+USERNAME="shackadmin"
+PASSWORD="password"
 
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
+
 WORKDIR="/tmp/pi-image"
 CACHE_IMG="$WORKDIR/image"
+
+BOOT_MOUNT="/mnt/pi-boot"
+ROOT_MOUNT="/mnt/pi-root"
+
 
 ### ===== PRECHECKS =====
 if [[ ! -b "$DEVICE" ]]; then
@@ -32,7 +38,8 @@ read -p "Type YES to continue: " confirm
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
 
-### ===== DOWNLOAD (CACHED) =====
+
+### ===== DOWNLOAD =====
 if [[ ! -f "$CACHE_IMG" ]]; then
   echo "[+] Downloading Raspberry Pi OS image..."
   wget -O "$CACHE_IMG" "$IMG_URL"
@@ -40,24 +47,22 @@ else
   echo "[+] Using cached image"
 fi
 
+
 ### ===== DETECT FORMAT =====
-echo "[+] Detecting image format..."
 TYPE=$(file -b "$CACHE_IMG")
 
 IMG_FILE=""
 
-# --- CASE 1: Already a disk image ---
 if [[ "$TYPE" == *"boot sector"* ]] || [[ "$TYPE" == *"filesystem"* ]]; then
-  echo "[+] Cached file is already a disk image"
+  echo "[+] Cached image already extracted"
   IMG_FILE="$CACHE_IMG"
 
-# --- CASE 2: XZ compressed ---
 elif [[ "$TYPE" == *"XZ compressed"* ]]; then
   echo "[+] Extracting XZ..."
+  rm -f "$WORKDIR"/image.img
   cp "$CACHE_IMG" image.xz
   unxz -f image.xz
 
-# --- CASE 3: ZIP archive ---
 elif [[ "$TYPE" == *"Zip archive"* ]]; then
   echo "[+] Extracting ZIP..."
   cp "$CACHE_IMG" image.zip
@@ -68,88 +73,208 @@ else
   exit 1
 fi
 
-### ===== FIND IMAGE (IF EXTRACTED) =====
-if [[ -z "$IMG_FILE" ]]; then
-  echo "[+] Locating extracted image..."
 
+### ===== LOCATE IMAGE =====
+if [[ -z "$IMG_FILE" ]]; then
   IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f -name "*.img" | head -n1)
 
   if [[ -z "$IMG_FILE" ]]; then
-    IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f ! -name "*.xz" ! -name "*.zip" -exec file {} \; | grep -i "boot sector\|filesystem" | head -n1 | cut -d: -f1)
-  fi
-
-  if [[ -z "$IMG_FILE" ]]; then
-    echo "ERROR: Could not find disk image after extraction"
-    ls -lah "$WORKDIR"
-    exit 1
+    IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f \
+      ! -name "*.xz" \
+      ! -name "*.zip" \
+      -exec file {} \; | \
+      grep -i "boot sector\|filesystem" | \
+      head -n1 | cut -d: -f1)
   fi
 fi
 
-echo "[+] Image ready: $IMG_FILE"
+if [[ -z "$IMG_FILE" ]]; then
+  echo "ERROR: Could not locate image file"
+  exit 1
+fi
+
+echo "[+] Using image:"
 ls -lh "$IMG_FILE"
 
+
 ### ===== FLASH =====
-echo "[+] Flashing to $DEVICE..."
+echo "[+] Flashing image..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
 
 sync
 
-### ===== MOUNT BOOT =====
+
+### ===== WAIT FOR PARTITIONS =====
+sleep 5
+
 BOOT_PART="${DEVICE}1"
-MOUNT_POINT="/mnt/pi-boot"
+ROOT_PART="${DEVICE}2"
 
-sudo mkdir -p "$MOUNT_POINT"
-sudo mount "$BOOT_PART" "$MOUNT_POINT"
 
-trap 'sudo umount "$MOUNT_POINT" || true' EXIT
+# ### ===== MOUNT PARTITIONS =====
+sudo mkdir -p "$BOOT_MOUNT"
+sudo mkdir -p "$ROOT_MOUNT"
 
-### ===== BASIC CONFIG =====
+sudo mount "$BOOT_PART" "$BOOT_MOUNT"
+sudo mount "$ROOT_PART" "$ROOT_MOUNT"
+
+trap 'sudo umount "$BOOT_MOUNT" 2>/dev/null || true; sudo umount "$ROOT_MOUNT" 2>/dev/null || true' EXIT
+
+
+# ### ===== ENABLE SSH =====
 echo "[+] Enabling SSH..."
-sudo touch "$MOUNT_POINT/ssh"
+sudo touch "$BOOT_MOUNT/ssh"
 
-echo "[+] Setting hostname..."
-echo "$HOSTNAME" | sudo tee "$MOUNT_POINT/hostname" >/dev/null
 
-echo "[+] Creating user..."
-HASH=$(openssl passwd -6 "$PASSWORD")
-echo "${USERNAME}:${HASH}" | sudo tee "$MOUNT_POINT/userconf.txt" >/dev/null
+# ### ===== CREATE USER =====
+# echo "[+] Creating user..."
 
-### ===== STATIC IP CONFIG =====
-echo "[+] Configuring static IP..."
+# HASH=$(openssl passwd -6 "$PASSWORD")
 
-sudo tee "$MOUNT_POINT/dhcpcd.conf.append" >/dev/null <<EOF
+# echo "${USERNAME}:${HASH}" | sudo tee "$BOOT_MOUNT/userconf.txt" >/dev/null
 
-interface eth0
-static ip_address=${IP_ADDRESS}/24
-static routers=${GATEWAY}
-static domain_name_servers=${DNS_SERVERS}
-EOF
 
-sudo tee "$MOUNT_POINT/firstboot.sh" >/dev/null <<'EOF'
+# ### ===== HOSTNAME =====
+# echo "[+] Setting hostname..."
+
+# echo "$HOSTNAME" | sudo tee "$ROOT_MOUNT/etc/hostname" >/dev/null
+
+# sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$HOSTNAME/" \
+#   "$ROOT_MOUNT/etc/hosts"
+
+
+# ### ===== STATIC IP =====
+# echo "[+] Configuring static IP..."
+
+# sudo mkdir -p "$ROOT_MOUNT/etc/NetworkManager/system-connections"
+
+# sudo tee "$ROOT_MOUNT/etc/NetworkManager/system-connections/eth0-static.nmconnection" >/dev/null <<EOF
+# [connection]
+# id=eth0-static
+# type=ethernet
+# interface-name=eth0
+# autoconnect=true
+
+# [ipv4]
+# method=manual
+# address1=${IP_ADDRESS}/24,${GATEWAY}
+# dns=${DNS_SERVERS// /;};
+
+# [ipv6]
+# method=ignore
+# EOF
+
+# sudo chmod 600 \
+#   "$ROOT_MOUNT/etc/NetworkManager/system-connections/eth0-static.nmconnection"
+
+
+### ===== FIRST BOOT DEBUG =====
+echo "[+] Installing first-boot debug service..."
+
+# Create script directory
+sudo mkdir -p "$ROOT_MOUNT/usr/local/sbin"
+
+# Create debug script
+sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null <<'EOF'
 #!/bin/bash
-set -e
-cat /boot/dhcpcd.conf.append >> /etc/dhcpcd.conf
-rm /boot/dhcpcd.conf.append
-rm /boot/firstboot.sh
+
+LOG=/boot/firstboot-debug.txt
+
+{
+echo "===== FIRST BOOT DEBUG ====="
+date
+echo
+
+echo "=== HOSTNAME ==="
+hostname
+
+echo
+echo "=== KERNEL CMDLINE ==="
+cat /proc/cmdline
+
+echo
+echo "=== IP ADDRESSES ==="
+ip addr
+
+echo
+echo "=== ROUTES ==="
+ip route
+
+echo
+echo "=== NETWORK DEVICES ==="
+nmcli device status 2>/dev/null || echo "nmcli not available"
+
+echo
+echo "=== NETWORK CONNECTIONS ==="
+nmcli connection show 2>/dev/null || true
+
+echo
+echo "=== DNS CONFIG ==="
+cat /etc/resolv.conf
+
+echo
+echo "=== DMESG NETWORK ==="
+dmesg -T | grep -i -E 'eth|network|link|dhcp'
+
+echo
+echo "=== NETWORKMANAGER LOGS ==="
+journalctl -u NetworkManager --no-pager -n 200 2>/dev/null || true
+
+echo
+echo "===== END DEBUG ====="
+
+} > "$LOG" 2>&1
+
+# Self-remove after first successful run
+systemctl disable firstboot-debug.service 2>/dev/null || true
+rm -f /etc/systemd/system/firstboot-debug.service
+rm -f /etc/systemd/system/multi-user.target.wants/firstboot-debug.service
+rm -f /usr/local/sbin/firstboot-debug.sh
 EOF
 
-sudo chmod +x "$MOUNT_POINT/firstboot.sh"
+# Make executable
+sudo chmod +x "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh"
 
-sudo tee "$MOUNT_POINT/rc.local" >/dev/null <<'EOF'
-#!/bin/bash
-bash /boot/firstboot.sh
-exit 0
+# Create systemd service
+sudo tee "$ROOT_MOUNT/etc/systemd/system/firstboot-debug.service" >/dev/null <<'EOF'
+[Unit]
+Description=First boot debug dump
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/firstboot-debug.sh
+RemainAfterExit=true
+
+[Install]
+WantedBy=multi-user.target
 EOF
 
-sudo chmod +x "$MOUNT_POINT/rc.local"
+# Enable service
+sudo mkdir -p \
+  "$ROOT_MOUNT/etc/systemd/system/multi-user.target.wants"
 
-### ===== CGROUPS =====
-echo "[+] Enabling cgroups..."
-sudo sed -i '1 s/$/ cgroup_enable=cpuset cgroup_memory=1 cgroup_enable=memory/' "$MOUNT_POINT/cmdline.txt"
+sudo ln -sf \
+  /etc/systemd/system/firstboot-debug.service \
+  "$ROOT_MOUNT/etc/systemd/system/multi-user.target.wants/firstboot-debug.service"
+
 
 ### ===== CLEANUP =====
+echo "[+] Syncing..."
+sync
+
 echo "[+] Unmounting..."
-sudo umount "$MOUNT_POINT"
+sudo umount "$BOOT_MOUNT"
+sudo umount "$ROOT_MOUNT"
+
 trap - EXIT
 
-echo "[+] SUCCESS: $HOSTNAME ready at $IP_ADDRESS"
+echo ""
+echo "[+] SUCCESS"
+echo "Hostname : $HOSTNAME"
+echo "IP       : $IP_ADDRESS"
+echo "Username : $USERNAME"
+echo ""
+echo "Boot the Pi and connect via:"
+echo "ssh ${USERNAME}@${IP_ADDRESS}"
