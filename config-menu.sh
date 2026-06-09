@@ -21,7 +21,7 @@ select_device() {
         MENU_ITEMS+=("$NAME" "$DESC")
     done
 
-    DEVICE_NAME=$(dialog \
+    DEVICE=$(dialog \
         --title "Select SD Card" \
         --menu "Choose target device" \
         20 100 10 \
@@ -42,11 +42,13 @@ CHOICE=$(dialog \
     --menu "Select setting" \
     20 70 10 \
     1 "Hostname: $HOSTNAME" \
-    2 "Target Device: $DEVICE_NAME" \
+    2 "Target Device: $DEVICE" \
     3 "IP Address: $IP_ADDRESS" \
     4 "Gateway: $GATEWAY" \
     5 "DNS Servers: $DNS_SERVERS" \
-    6 "Save and Return" \
+    6 "Username: $USERNAME" \
+    7 "Password: $PASSWORD" \
+    8 "Save and Return" \
     3>&1 1>&2 2>&3)
 RET=$?
 
@@ -90,12 +92,28 @@ DNS_SERVERS=$(dialog \
 ;;
 
 6)
+USERNAME=$(dialog \
+    --inputbox "Username" \
+    8 60 "$USERNAME" \
+    3>&1 1>&2 2>&3)
+;;
+
+7)
+PASSWORD=$(dialog \
+    --inputbox "Password" \
+    8 60 "$PASSWORD" \
+    3>&1 1>&2 2>&3)
+;;
+
+8)
 cat > "$CONFIG_FILE" <<EOF
 HOSTNAME=$HOSTNAME
-DEVICE_NAME="$DEVICE_NAME"
+DEVICE="$DEVICE"
 IP_ADDRESS=$IP_ADDRESS
 GATEWAY=$GATEWAY
 DNS_SERVERS="$DNS_SERVERS"
+USERNAME="$USERNAME"
+PASSWORD="$PASSWORD"
 EOF
 break
 ;;

@@ -13,10 +13,12 @@ CONFIG_FILE="$(dirname "$0")/config.env"
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" <<EOF
 HOSTNAME=shack-pi-001
-DEVICE_NAME=Pi 001
+DEVICE=/dev/sdb
 IP_ADDRESS=10.0.0.50
 GATEWAY=10.0.0.1
 DNS_SERVERS="10.0.0.1 1.1.1.1"
+USERNAME=shackadmin
+PASSWORD="your_secure_password_here"
 EOF
 fi
 
@@ -54,7 +56,6 @@ case $CHOICE in
 
 2)
     ./debug.sh
-    read -rp "Press Enter..."
     ;;
 
 3)
@@ -67,10 +68,12 @@ case $CHOICE in
 
     cat > "$TMPFILE" <<EOF
 Hostname      : $HOSTNAME
-Device        : $DEVICE_NAME
+Device        : $DEVICE
 IP Address    : $IP_ADDRESS
 Gateway       : $GATEWAY
 DNS Servers   : $DNS_SERVERS
+Username      : $USERNAME
+Password      : $PASSWORD
 EOF
 
     dialog \

@@ -36,7 +36,7 @@ for DEV in "${DEVICES[@]}"; do
     MENU_ITEMS+=("$NAME" "$DESC")
 done
 
-DEVICE=$(
+DEBUG_DEVICE=$(
     dialog \
         --clear \
         --title "Select SD Card" \
@@ -59,13 +59,13 @@ fi
 # ------------------------------------------------------------------
 
 mapfile -t PARTITIONS < <(
-    lsblk -lnpo NAME,SIZE,FSTYPE,MOUNTPOINT "$DEVICE" | tail -n +2
+    lsblk -lnpo NAME,SIZE,FSTYPE,MOUNTPOINT "$DEBUG_DEVICE" | tail -n +2
 )
 
 if [ ${#PARTITIONS[@]} -eq 0 ]; then
     dialog \
         --title "Error" \
-        --msgbox "No partitions found on $DEVICE" \
+        --msgbox "No partitions found on $DEBUG_DEVICE" \
         8 60
     clear
     exit 1
