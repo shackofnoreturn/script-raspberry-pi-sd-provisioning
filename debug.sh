@@ -7,13 +7,6 @@
 # Includes
 source "$(dirname "$0")/lib/ui.sh"
 
-if ! command -v dialog >/dev/null 2>&1; then
-    echo "dialog is not installed."
-    echo "Install it with:"
-    echo "sudo pacman -S dialog"
-    exit 1
-fi
-
 # Select SD Card
 mapfile -t DEVICES < <(
     lsblk -dpno NAME,SIZE,MODEL,TRAN |
