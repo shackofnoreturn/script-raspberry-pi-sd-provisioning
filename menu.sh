@@ -28,22 +28,16 @@ source "$CONFIG_FILE"
 
 # Main menu loop
 while true; do
-CHOICE=$(dialog \
-    --clear \
-    --backtitle "$BACKTITLE" \
-    --title "Main Menu" \
-    --menu "Select an action" \
-    15 60 6 \
+CHOICE=$(menu "Main Menu" "Select an action" \
     1 "Provision SD Card" \
     2 "Retrieve Debug Data" \
     3 "Configuration" \
     4 "Show Current Config" \
-    5 "Exit" \
-    3>&1 1>&2 2>&3)
-RET=$?
+    5 "Exit")
 clear
 
 # Check if the user pressed Cancel or closed the dialog
+RET=$?
 if [ $RET -ne 0 ]; then
     break
 fi
@@ -52,7 +46,6 @@ fi
 case $CHOICE in
 1)
     ./provision.sh
-    read -rp "Press Enter..."
     ;;
 
 2)
@@ -66,7 +59,6 @@ case $CHOICE in
 
 4)
     TMPFILE=$(mktemp)
-
     cat > "$TMPFILE" <<EOF
 Hostname      : $HOSTNAME
 Device        : $DEVICE
@@ -77,12 +69,7 @@ Username      : $USERNAME
 Password      : $PASSWORD
 EOF
 
-    dialog \
-    --backtitle "$BACKTITLE" \
-    --title "Current Configuration" \
-    --textbox "$TMPFILE" \
-    15 60
-
+    text "Current Configuration" "$TMPFILE"
     rm -f "$TMPFILE"
     ;;
 
@@ -91,5 +78,4 @@ EOF
     ;;
 
 esac
-
 done

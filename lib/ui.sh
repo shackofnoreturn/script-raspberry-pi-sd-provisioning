@@ -12,6 +12,21 @@ msg() {
          --msgbox "$2" 10 60
 }
 
+## Text Box
+text() {
+  dialog --backtitle "$BACKTITLE" \
+         --title "${1:-Info}" \
+         --textbox "$2" 15 60
+}
+
+## Input Box
+input() {
+  dialog --backtitle "$BACKTITLE" \
+         --title "${1:-Input}" \
+         --inputbox "$2" 10 60 "${3:-}" \
+         3>&1 1>&2 2>&3
+}
+
 ## YES/NO Prompt
 confirm() {
   dialog --backtitle "$BACKTITLE" \
@@ -21,21 +36,28 @@ confirm() {
 
 ## Menu Wrapper
 menu() {
-  dialog --backtitle "$BACKTITLE" \
+  dialog --clear \
+         --backtitle "$BACKTITLE" \
          --title "$1" \
          --menu "$2" 20 70 10 "${@:3}" 3>&1 1>&2 2>&3
 }
 
 ## Device Selection
 select_device() {
-  mapfile -t DEVICES < <(lsblk -dpno NAME,SIZE,MODEL,TRAN | grep -E 'usb|mmc')
+  mapfile -t DEVICES < <(
+      lsblk -dpno NAME,SIZE,MODEL,TRAN |
+      grep -E 'usb|mmc'
+  )
 
-  MENU=()
-  for d in "${DEVICES[@]}"; do
-    MENU+=("$d" "$(lsblk -dnpo SIZE,MODEL "$d")")
+  MENU_ITEMS=()
+  for DEV in "${DEVICES[@]}"; do
+      NAME=$(echo "$DEV" | awk '{print $1}')
+      DESC=$(echo "$DEV" | cut -d' ' -f2-)
+
+      MENU_ITEMS+=("$NAME" "$DESC")
   done
 
-  menu "Select SD Card" "Choose target device" "${MENU[@]}"
+  DEVICE=$(menu "Select SD Card" "Choose target device" "${MENU_ITEMS[@]}")
 }
 
 # Helpers
