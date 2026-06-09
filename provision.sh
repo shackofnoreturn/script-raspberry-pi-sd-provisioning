@@ -1,10 +1,9 @@
 #!/bin/bash
-set -euo pipefail
 
 # Includes
 source "$(dirname "$0")/lib/ui.sh"
 
-### ===== CONFIG =====
+# Config
 source ./config.env
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
 WORKDIR="/tmp/pi-image"
@@ -13,7 +12,7 @@ BOOT_MOUNT="/mnt/pi-boot"
 ROOT_MOUNT="/mnt/pi-root"
 
 
-### ===== PRECHECKS =====
+# Prechecks
 if [[ ! -b "$DEVICE" ]]; then
   echo "ERROR: $DEVICE is not a valid block device"
   exit 1
@@ -30,7 +29,7 @@ mkdir -p "$WORKDIR"
 cd "$WORKDIR"
 
 
-### ===== DOWNLOAD =====
+# Download
 if [[ ! -f "$CACHE_IMG" ]]; then
   echo "[+] Downloading Raspberry Pi OS image..."
   wget -O "$CACHE_IMG" "$IMG_URL"
@@ -39,7 +38,7 @@ else
 fi
 
 
-### ===== DETECT FORMAT =====
+# Detect format
 TYPE=$(file -b "$CACHE_IMG")
 
 IMG_FILE=""
@@ -65,7 +64,7 @@ else
 fi
 
 
-### ===== LOCATE IMAGE =====
+# Locate image file
 if [[ -z "$IMG_FILE" ]]; then
   IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f -name "*.img" | head -n1)
 
@@ -88,21 +87,21 @@ echo "[+] Using image:"
 ls -lh "$IMG_FILE"
 
 
-### ===== FLASH =====
+# Flash
 echo "[+] Flashing image..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
 
 sync
 
 
-### ===== WAIT FOR PARTITIONS =====
+# Wait for partitions
 sleep 5
 
 BOOT_PART="${DEVICE}1"
 ROOT_PART="${DEVICE}2"
 
 
-# ### ===== MOUNT PARTITIONS =====
+# Mount partitions
 sudo mkdir -p "$BOOT_MOUNT"
 sudo mkdir -p "$ROOT_MOUNT"
 
@@ -112,12 +111,12 @@ sudo mount "$ROOT_PART" "$ROOT_MOUNT"
 trap 'sudo umount "$BOOT_MOUNT" 2>/dev/null || true; sudo umount "$ROOT_MOUNT" 2>/dev/null || true' EXIT
 
 
-# ### ===== ENABLE SSH =====
+# Enable SSH
 echo "[+] Enabling SSH..."
 sudo touch "$BOOT_MOUNT/ssh"
 
 
-# ### ===== CREATE USER =====
+# Create User
 # echo "[+] Creating user..."
 
 # HASH=$(openssl passwd -6 "$PASSWORD")
@@ -159,13 +158,11 @@ sudo touch "$BOOT_MOUNT/ssh"
 #   "$ROOT_MOUNT/etc/NetworkManager/system-connections/eth0-static.nmconnection"
 
 
-### ===== FIRST BOOT DEBUG =====
+# First Boot Debug
 echo "[+] Installing first-boot debug service..."
 
-# Create script directory
 sudo mkdir -p "$ROOT_MOUNT/usr/local/sbin"
 
-# Create debug script
 sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null <<'EOF'
 #!/bin/bash
 
@@ -251,7 +248,7 @@ sudo ln -sf \
   "$ROOT_MOUNT/etc/systemd/system/multi-user.target.wants/firstboot-debug.service"
 
 
-### ===== CLEANUP =====
+# Cleanup
 echo "[+] Syncing..."
 sync
 

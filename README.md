@@ -1,15 +1,15 @@
 # Raspberry Pi SD Card Provisioning
-
+An interactive script to provision raspberry pi SD Cards
 
 ## How
-**Make the script file executable**
+**Make all .sh files executable**
 ```
-chmod +x provision-pi.sh
+chmod +x *.sh
 ```
 
 **Run script after inserting your sd card**
-*Make sure the sd card location is the one you want. Use `lsblk` first to check beforehand* 
+*Be careful which device you pick when provisioning* 
 
 ```
-sudo ./provision-pi.sh pi-hostname-001 /dev/sdX 10.0.0.10 myUserName myPassword
+./menu.sh
 ```

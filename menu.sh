@@ -60,7 +60,7 @@ case $CHOICE in
     ;;
 
 3)
-    ./config-menu.sh
+    ./config.sh
     source "$CONFIG_FILE"
     ;;
 

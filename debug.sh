@@ -1,5 +1,8 @@
 #!/bin/bash
-set -euo pipefail
+
+#######################
+# 2. Debug
+#
 
 # Includes
 source "$(dirname "$0")/lib/ui.sh"
@@ -11,10 +14,7 @@ if ! command -v dialog >/dev/null 2>&1; then
     exit 1
 fi
 
-# ------------------------------------------------------------------
 # Select SD Card
-# ------------------------------------------------------------------
-
 mapfile -t DEVICES < <(
     lsblk -dpno NAME,SIZE,MODEL,TRAN |
     grep -E 'usb|mmc'
@@ -58,10 +58,7 @@ if [ $RET -ne 0 ]; then
     exit 0
 fi
 
-# ------------------------------------------------------------------
 # Select Partition
-# ------------------------------------------------------------------
-
 mapfile -t PARTITIONS < <(
     lsblk -lnpo NAME,SIZE,FSTYPE,MOUNTPOINT "$DEBUG_DEVICE" | tail -n +2
 )
@@ -103,10 +100,7 @@ if [ $RET -ne 0 ]; then
     exit 0
 fi
 
-# ------------------------------------------------------------------
 # Mount Selected Partition
-# ------------------------------------------------------------------
-
 MOUNT_POINT=$(mktemp -d)
 
 cleanup() {
@@ -129,30 +123,13 @@ if ! sudo mount "$PARTITION" "$MOUNT_POINT"; then
     exit 1
 fi
 
-# ------------------------------------------------------------------
 # Locate Debug File
-# ------------------------------------------------------------------
-
-dialog \
-        --backtitle "$BACKTITLE" \
-        --title "Debug" \
-        --msgbox \
-        "Gonna look for the file ..." \
-        12 70
-
 DEBUG_FILE=$(
     sudo find "$MOUNT_POINT" -type f \
         -name "firstboot-debug.txt" \
         2>/dev/null \
         | head -n1
 )
-
-dialog \
-        --backtitle "$BACKTITLE" \
-        --title "Debug" \
-        --msgbox \
-        "$DEBUG_FILE" \
-        12 70
 
 if [ -z "$DEBUG_FILE" ]; then
     dialog \
@@ -166,10 +143,7 @@ if [ -z "$DEBUG_FILE" ]; then
     exit 1
 fi
 
-# ------------------------------------------------------------------
 # Display Debug Log
-# ------------------------------------------------------------------
-
 dialog \
     --backtitle "$BACKTITLE" \
     --title "First Boot Debug" \
