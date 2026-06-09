@@ -4,6 +4,9 @@
 # 3. Configuration
 #
 
+# Includes
+source "$(dirname "$0")/lib/ui.sh"
+
 # Target Device Helper Function
 select_device() {
 
@@ -22,6 +25,7 @@ select_device() {
     done
 
     DEVICE=$(dialog \
+        --backtitle "$BACKTITLE" \
         --title "Select SD Card" \
         --menu "Choose target device" \
         20 100 10 \
@@ -38,6 +42,7 @@ source "$CONFIG_FILE"
 # Configuration menu loop
 while true; do
 CHOICE=$(dialog \
+    --backtitle "$BACKTITLE" \
     --title "Configuration" \
     --menu "Select setting" \
     20 70 10 \
@@ -61,6 +66,7 @@ fi
 case $CHOICE in
 1)
 HOSTNAME=$(dialog \
+    --backtitle "$BACKTITLE" \
     --inputbox "Hostname" \
     8 60 "$HOSTNAME" \
     3>&1 1>&2 2>&3)
@@ -72,6 +78,7 @@ select_device
 
 3)
 IP_ADDRESS=$(dialog \
+    --backtitle "$BACKTITLE" \
     --inputbox "IP Address" \
     8 60 "$IP_ADDRESS" \
     3>&1 1>&2 2>&3)
@@ -79,6 +86,7 @@ IP_ADDRESS=$(dialog \
 
 4)
 GATEWAY=$(dialog \
+    --backtitle "$BACKTITLE" \
     --inputbox "Gateway" \
     8 60 "$GATEWAY" \
     3>&1 1>&2 2>&3)
@@ -86,6 +94,7 @@ GATEWAY=$(dialog \
 
 5)
 DNS_SERVERS=$(dialog \
+    --backtitle "$BACKTITLE" \
     --inputbox "DNS Servers" \
     8 60 "$DNS_SERVERS" \
     3>&1 1>&2 2>&3)
@@ -93,6 +102,7 @@ DNS_SERVERS=$(dialog \
 
 6)
 USERNAME=$(dialog \
+    --backtitle "$BACKTITLE" \
     --inputbox "Username" \
     8 60 "$USERNAME" \
     3>&1 1>&2 2>&3)
@@ -100,6 +110,7 @@ USERNAME=$(dialog \
 
 7)
 PASSWORD=$(dialog \
+    --backtitle "$BACKTITLE" \
     --inputbox "Password" \
     8 60 "$PASSWORD" \
     3>&1 1>&2 2>&3)

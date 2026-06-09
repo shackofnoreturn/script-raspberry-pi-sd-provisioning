@@ -1,6 +1,8 @@
 #!/bin/bash
-
 set -euo pipefail
+
+# Includes
+source "$(dirname "$0")/lib/ui.sh"
 
 if ! command -v dialog >/dev/null 2>&1; then
     echo "dialog is not installed."
@@ -20,6 +22,7 @@ mapfile -t DEVICES < <(
 
 if [ ${#DEVICES[@]} -eq 0 ]; then
     dialog \
+        --backtitle "$BACKTITLE" \
         --title "Debug Viewer" \
         --msgbox "No removable devices detected." \
         8 50
@@ -39,6 +42,7 @@ done
 DEBUG_DEVICE=$(
     dialog \
         --clear \
+        --backtitle "$BACKTITLE" \
         --title "Select SD Card" \
         --menu "Choose the Raspberry Pi SD card" \
         20 100 10 \
@@ -64,6 +68,7 @@ mapfile -t PARTITIONS < <(
 
 if [ ${#PARTITIONS[@]} -eq 0 ]; then
     dialog \
+        --backtitle "$BACKTITLE" \
         --title "Error" \
         --msgbox "No partitions found on $DEBUG_DEVICE" \
         8 60
@@ -82,6 +87,7 @@ done
 
 PARTITION=$(
     dialog \
+        --backtitle "$BACKTITLE" \
         --title "Select Partition" \
         --menu "Choose the partition containing the debug log" \
         20 100 10 \
@@ -115,6 +121,7 @@ trap cleanup EXIT
 
 if ! sudo mount "$PARTITION" "$MOUNT_POINT"; then
     dialog \
+        --backtitle "$BACKTITLE" \
         --title "Mount Failed" \
         --msgbox "Failed to mount:\n\n$PARTITION" \
         10 60
@@ -127,6 +134,7 @@ fi
 # ------------------------------------------------------------------
 
 dialog \
+        --backtitle "$BACKTITLE" \
         --title "Debug" \
         --msgbox \
         "Gonna look for the file ..." \
@@ -140,6 +148,7 @@ DEBUG_FILE=$(
 )
 
 dialog \
+        --backtitle "$BACKTITLE" \
         --title "Debug" \
         --msgbox \
         "$DEBUG_FILE" \
@@ -147,6 +156,7 @@ dialog \
 
 if [ -z "$DEBUG_FILE" ]; then
     dialog \
+        --backtitle "$BACKTITLE" \
         --title "Debug File Not Found" \
         --msgbox \
         "Could not find firstboot-debug.txt anywhere on:\n\n$PARTITION" \
@@ -161,6 +171,7 @@ fi
 # ------------------------------------------------------------------
 
 dialog \
+    --backtitle "$BACKTITLE" \
     --title "First Boot Debug" \
     --textbox "$DEBUG_FILE" \
     30 120

@@ -22,14 +22,15 @@ PASSWORD="your_secure_password_here"
 EOF
 fi
 
-# Load configuration
+# Includes
+source "$(dirname "$0")/lib/ui.sh"
 source "$CONFIG_FILE"
 
 # Main menu loop
 while true; do
 CHOICE=$(dialog \
     --clear \
-    --backtitle "Raspberry Pi Provisioner | $(date +%Y) | Host: $(hostname)" \
+    --backtitle "$BACKTITLE" \
     --title "Main Menu" \
     --menu "Select an action" \
     15 60 6 \
@@ -77,6 +78,7 @@ Password      : $PASSWORD
 EOF
 
     dialog \
+    --backtitle "$BACKTITLE" \
     --title "Current Configuration" \
     --textbox "$TMPFILE" \
     15 60

@@ -1,6 +1,9 @@
 #!/bin/bash
 set -euo pipefail
 
+# Includes
+source "$(dirname "$0")/lib/ui.sh"
+
 ### ===== CONFIG =====
 source ./config.env
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
