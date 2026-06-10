@@ -1,40 +1,49 @@
 #!/bin/bash
 
+#######################
+# 1. Provision
+#
+
 # Includes
 source "$(dirname "$0")/lib/ui.sh"
+source ./config.env
 
 # Config
-source ./config.env
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
 WORKDIR="/tmp/pi-image"
 CACHE_IMG="$WORKDIR/image"
 BOOT_MOUNT="/mnt/pi-boot"
 ROOT_MOUNT="/mnt/pi-root"
 
-
 # Prechecks
 if [[ ! -b "$DEVICE" ]]; then
-  echo "ERROR: $DEVICE is not a valid block device"
-  exit 1
+    error "$DEVICE is not a valid block device."
+    exit 1
 fi
 
-echo "Target device:"
-lsblk "$DEVICE"
+DEVICE_INFO=$(lsblk -dno NAME,SIZE,MODEL "$DEVICE")
+confirm \
+    "Confirm Flash" \
+    "Device:
+$DEVICE_INFO
+All data will be permanently erased.
+Continue?"
+[[ $? -eq 0 ]] || exit 0
 
-echo "WARNING: ALL DATA ON $DEVICE WILL BE DESTROYED"
-read -p "Type YES to continue: " confirm
-[[ "$confirm" == "YES" ]] || exit 1
-
+# Create working directory
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
 
-
 # Download
 if [[ ! -f "$CACHE_IMG" ]]; then
-  echo "[+] Downloading Raspberry Pi OS image..."
+  info \
+    "Provisioning" \
+    "Downloading Raspberry Pi OS..."
   wget -O "$CACHE_IMG" "$IMG_URL"
 else
-  echo "[+] Using cached image"
+  info \
+    "Provisioning" \
+    "Using cached image..."
 fi
 
 
@@ -44,25 +53,30 @@ TYPE=$(file -b "$CACHE_IMG")
 IMG_FILE=""
 
 if [[ "$TYPE" == *"boot sector"* ]] || [[ "$TYPE" == *"filesystem"* ]]; then
-  echo "[+] Cached image already extracted"
+  info \
+    "Provisioning" \
+    "Cached image already extracted"
   IMG_FILE="$CACHE_IMG"
 
 elif [[ "$TYPE" == *"XZ compressed"* ]]; then
-  echo "[+] Extracting XZ..."
+  info \
+    "Provisioning" \
+    "Extracting XZ compressed image..."
   rm -f "$WORKDIR"/image.img
   cp "$CACHE_IMG" image.xz
   unxz -f image.xz
 
 elif [[ "$TYPE" == *"Zip archive"* ]]; then
-  echo "[+] Extracting ZIP..."
+  info \
+    "Provisioning" \
+    "Extracting ZIP compressed image..."
   cp "$CACHE_IMG" image.zip
   unzip -o image.zip
 
 else
-  echo "ERROR: Unknown image format: $TYPE"
+  error "ERROR: Unknown image format: $TYPE"
   exit 1
 fi
-
 
 # Locate image file
 if [[ -z "$IMG_FILE" ]]; then
@@ -79,16 +93,22 @@ if [[ -z "$IMG_FILE" ]]; then
 fi
 
 if [[ -z "$IMG_FILE" ]]; then
-  echo "ERROR: Could not locate image file"
+  error "ERROR: Could not locate image file"
   exit 1
 fi
 
-echo "[+] Using image:"
+info \
+    "Provisioning" \
+    "Using image:"
 ls -lh "$IMG_FILE"
 
 
 # Flash
-echo "[+] Flashing image..."
+info \
+    "Provisioning" \
+    "Flashing image to
+$DEVICE
+This may take several minutes..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
 
 sync
@@ -104,7 +124,9 @@ ROOT_PART="${DEVICE}2"
 # Mount partitions
 sudo mkdir -p "$BOOT_MOUNT"
 sudo mkdir -p "$ROOT_MOUNT"
-
+info \
+    "Provisioning" \
+    "Mounting partitions..."
 sudo mount "$BOOT_PART" "$BOOT_MOUNT"
 sudo mount "$ROOT_PART" "$ROOT_MOUNT"
 
@@ -112,12 +134,16 @@ trap 'sudo umount "$BOOT_MOUNT" 2>/dev/null || true; sudo umount "$ROOT_MOUNT" 2
 
 
 # Enable SSH
-echo "[+] Enabling SSH..."
+info \
+    "Provisioning" \
+    "Enabling SSH..."
 sudo touch "$BOOT_MOUNT/ssh"
 
 
 # Create User
-# echo "[+] Creating user..."
+# info \
+#     "Provisioning" \
+#     "Creating user..."
 
 # HASH=$(openssl passwd -6 "$PASSWORD")
 
@@ -159,12 +185,16 @@ sudo touch "$BOOT_MOUNT/ssh"
 
 
 # First Boot Debug
-echo "[+] Installing first-boot debug service..."
+info \
+    "Provisioning" \
+    "Installing first-boot diagnostics..."
 
 sudo mkdir -p "$ROOT_MOUNT/usr/local/sbin"
 
 sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null <<'EOF'
 #!/bin/bash
+
+touch firstboot-debug.log.ok
 
 LOG=/boot/firstboot-debug.txt
 
@@ -214,10 +244,10 @@ echo "===== END DEBUG ====="
 } > "$LOG" 2>&1
 
 # Self-remove after first successful run
-systemctl disable firstboot-debug.service 2>/dev/null || true
-rm -f /etc/systemd/system/firstboot-debug.service
-rm -f /etc/systemd/system/multi-user.target.wants/firstboot-debug.service
-rm -f /usr/local/sbin/firstboot-debug.sh
+# systemctl disable firstboot-debug.service 2>/dev/null || true
+# rm -f /etc/systemd/system/firstboot-debug.service
+# rm -f /etc/systemd/system/multi-user.target.wants/firstboot-debug.service
+# rm -f /usr/local/sbin/firstboot-debug.sh
 EOF
 
 # Make executable
@@ -249,20 +279,26 @@ sudo ln -sf \
 
 
 # Cleanup
-echo "[+] Syncing..."
+info \
+    "Provisioning" \
+    "Syncing and unmounting..."
 sync
-
-echo "[+] Unmounting..."
 sudo umount "$BOOT_MOUNT"
 sudo umount "$ROOT_MOUNT"
 
 trap - EXIT
+msg \
+    "Provisioning Complete" \
+    "SD card successfully prepared.
 
-echo ""
-echo "[+] SUCCESS"
-echo "Hostname : $HOSTNAME"
-echo "IP       : $IP_ADDRESS"
-echo "Username : $USERNAME"
-echo ""
-echo "Boot the Pi and connect via:"
-echo "ssh ${USERNAME}@${IP_ADDRESS}"
+Hostname:
+$HOSTNAME
+
+IP Address:
+$IP_ADDRESS
+
+Username:
+$USERNAME
+
+SSH Command:
+ssh ${USERNAME}@${IP_ADDRESS}"
