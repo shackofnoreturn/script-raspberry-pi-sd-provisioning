@@ -19,6 +19,31 @@ text() {
          --textbox "$2" 15 60
 }
 
+## Display Box
+display() {
+  dialog --backtitle "$BACKTITLE" \
+         --title "${1:-Info}" \
+         --textbox "$2" 30 120
+}
+
+## Info Box
+info() {
+    dialog \
+        --backtitle "$BACKTITLE" \
+        --title "$1" \
+        --infobox "$2" \
+        8 60
+}
+
+## Error Box
+error() {
+    dialog \
+        --backtitle "$BACKTITLE" \
+        --title "Error" \
+        --msgbox "$1" \
+        12 70
+}
+
 ## Input Box
 input() {
   dialog --backtitle "$BACKTITLE" \
@@ -27,7 +52,7 @@ input() {
          3>&1 1>&2 2>&3
 }
 
-## YES/NO Prompt
+## Yes/No Prompt
 confirm() {
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Confirm}" \
@@ -65,24 +90,25 @@ select_device() {
 mount_partition() {
   local part="$1"
 
-  MNT=$(mktemp -d)
+  MOUNT_POINT=$(mktemp -d)
 
-  sudo mount "$part" "$MNT" || return 1
+  cleanup() {
+    if mountpoint -q "$MOUNT_POINT"; then
+        sudo umount "$MOUNT_POINT" >/dev/null 2>&1 || true
+    fi
 
-  echo "$MNT"
-}
+    rmdir "$MOUNT_POINT" >/dev/null 2>&1 || true
+  }
+  trap cleanup EXIT
 
-## Debug file resolver
-find_debug_file() {
-  local root="$1"
-
-  for p in \
-    "$root/boot/firstboot-debug.txt" \
-    "$root/firstboot-debug.txt" \
-    "$root/boot/firmware/firstboot-debug.txt"
-  do
-    [ -f "$p" ] && echo "$p" && return 0
-  done
-
-  return 1
+  if ! sudo mount "$PARTITION" "$MOUNT_POINT"; then
+    dialog \
+        --backtitle "$BACKTITLE" \
+        --title "Mount Failed" \
+        --msgbox "Failed to mount:\n\n$PARTITION" \
+        10 60
+    clear
+    exit 1
+  fi
+  echo "$MOUNT_POINT"
 }
