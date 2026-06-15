@@ -10,75 +10,69 @@ source ./config.env
 
 # Config
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKDIR="/tmp/pi-image"
 CACHE_IMG="$WORKDIR/image"
 BOOT_MOUNT="/mnt/pi-boot"
 ROOT_MOUNT="/mnt/pi-root"
 
-# Prechecks
+# Prechecking
 if [[ ! -b "$DEVICE" ]]; then
-    error "$DEVICE is not a valid block device."
-    exit 1
+  error "$DEVICE is not a valid block device."
+  exit 1
 fi
 
 DEVICE_INFO=$(lsblk -dno NAME,SIZE,MODEL "$DEVICE")
 confirm \
-    "Confirm Flash" \
-    "Device:
+  "Confirm Flash" \
+  "Device:
 $DEVICE_INFO
 All data will be permanently erased.
 Continue?"
 [[ $? -eq 0 ]] || exit 0
 
-# Create working directory
+# Setup
+PROGRESS_PIPE=$(mktemp -u)
+mkfifo "$PROGRESS_PIPE"
+dialog \
+    --backtitle "$BACKTITLE" \
+    --title "Provisioning Raspberry Pi" \
+    --gauge "Starting..." \
+    10 70 0 < "$PROGRESS_PIPE" &
+GAUGE_PID=$!
+
+update_progress 1 "Creating working directory..."
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
 
-# Download
+# Downloading
+update_progress 5 "Checking image cache..."
 if [[ ! -f "$CACHE_IMG" ]]; then
-  info \
-    "Provisioning" \
-    "Downloading Raspberry Pi OS..."
+  update_progress 15 "Downloading Raspberry Pi OS..."
   wget -O "$CACHE_IMG" "$IMG_URL"
-else
-  info \
-    "Provisioning" \
-    "Using cached image..."
 fi
 
-
-# Detect format
+# Extracting
+update_progress 30 "Extracting image..."
 TYPE=$(file -b "$CACHE_IMG")
-
 IMG_FILE=""
 
 if [[ "$TYPE" == *"boot sector"* ]] || [[ "$TYPE" == *"filesystem"* ]]; then
-  info \
-    "Provisioning" \
-    "Cached image already extracted"
   IMG_FILE="$CACHE_IMG"
-
 elif [[ "$TYPE" == *"XZ compressed"* ]]; then
-  info \
-    "Provisioning" \
-    "Extracting XZ compressed image..."
   rm -f "$WORKDIR"/image.img
   cp "$CACHE_IMG" image.xz
   unxz -f image.xz
-
 elif [[ "$TYPE" == *"Zip archive"* ]]; then
-  info \
-    "Provisioning" \
-    "Extracting ZIP compressed image..."
   cp "$CACHE_IMG" image.zip
   unzip -o image.zip
-
 else
   error "ERROR: Unknown image format: $TYPE"
   exit 1
 fi
 
-# Locate image file
+# Locating
+update_progress 40 "Locating image file..."
 if [[ -z "$IMG_FILE" ]]; then
   IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f -name "*.img" | head -n1)
 
@@ -97,13 +91,7 @@ if [[ -z "$IMG_FILE" ]]; then
   exit 1
 fi
 
-info \
-    "Provisioning" \
-    "Using image:"
-ls -lh "$IMG_FILE"
-
-
-# Flash
+# Flashing
 info \
     "Provisioning" \
     "Flashing image to
@@ -144,6 +132,13 @@ sudo touch "$BOOT_MOUNT/ssh"
 # info \
 #     "Provisioning" \
 #     "Creating user..."
+PASSWORD_HASH=$(openssl passwd -6 "$PASSWORD")
+sed \
+  -e "s|__HOSTNAME__|$HOSTNAME|g" \
+  -e "s|__USERNAME__|$USERNAME|g" \
+  -e "s|__PASSWORD_HASH__|$PASSWORD_HASH|g" \
+  "$SCRIPT_DIR/files/bootfs/user-data" \
+  | sudo tee "$BOOT_MOUNT/user-data" >/dev/null
 
 # HASH=$(openssl passwd -6 "$PASSWORD")
 

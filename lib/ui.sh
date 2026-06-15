@@ -38,6 +38,7 @@ info() {
 ## Error Box
 error() {
     dialog \
+        --clear \
         --backtitle "$BACKTITLE" \
         --title "Error" \
         --msgbox "$1" \
@@ -52,11 +53,34 @@ input() {
          3>&1 1>&2 2>&3
 }
 
+## Password Box
+## Input Box
+secure() {
+  dialog --backtitle "$BACKTITLE" \
+         --title "${1:-Input}" \
+         --insecure \
+         --passwordbox "$2" 10 60 "${3:-}" \
+         3>&1 1>&2 2>&3
+}
+
 ## Yes/No Prompt
 confirm() {
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Confirm}" \
          --yesno "$2" 10 60
+}
+
+# Progress Bar
+progress() {
+    local percent="$1"
+    local message="$2"
+
+    {
+        echo "XXX"
+        echo "$percent"
+        echo "$message"
+        echo "XXX"
+    } > "$PROGRESS_PIPE"
 }
 
 ## Menu Wrapper
@@ -111,4 +135,19 @@ mount_partition() {
     exit 1
   fi
   echo "$MOUNT_POINT"
+}
+
+## Update Progress Bar
+update_progress() {
+
+    local pct="$1"
+    local msg="$2"
+
+    {
+        echo "XXX"
+        echo "$pct"
+        echo "$msg"
+        echo "XXX"
+    } > "$PROGRESS_PIPE"
+
 }

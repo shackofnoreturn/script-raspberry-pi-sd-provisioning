@@ -13,3 +13,8 @@ chmod +x *.sh
 ```
 ./menu.sh
 ```
+# Todo
+- Set hostname
+- Create user
+- Set static eth
+
