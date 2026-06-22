@@ -33,8 +33,8 @@ chmod +x *.sh
 ```
 
 # Todo
-- cmdline.txt
-- config.txt
+- inject cmdline.txt
+- inject config.txt
 - meta-data
 - network-config
 - user-data

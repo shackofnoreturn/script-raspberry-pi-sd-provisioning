@@ -1,13 +1,23 @@
-# Further explanation of configurable files
+# Further explanation of configurable files and alterations
 
 ## cmdline.txt
+**Linux kernel boot parameters**
 
 | Parameter | Purpose |
 |---|---|
-| console=serial0,115200 | Send boot messages to the serial port at 115200 baud |
-| console=tty1 | Also display boot messages on the local HDMI console |
-| root=PARTUUID=... | Root filesystem location (PARTUUID identifies the partition) |
-| rootfstype=ext4 | Root filesystem type |
-| fsck.repair=yes | Automatically repair filesystem errors |
-| rootwait | Wait indefinitely for the root device to appear |
 | quiet splash | Disable splash screen |
+
+
+## config.txt
+**Firmware and hardware configuration before linux starts**
+
+| Parameter | Purpose |
+|---|---|
+| dtparam=audio=off | Disables onboard audio |
+| camera_auto_detect=0 | Disables camera drivers |
+| display_auto_detect=0 | Disables attached displays |
+| #dtoverlay=vc4-kms-v3d | Disable full KMS Graphics stack |
+| #max_framebuffers=2 |  |
+| gpu_mem=16 | Lower GPU memory |
+| dtoverlay=disable-bt | Disable Bluetooth |
+| dtoverlay=disable-wifi | Disable Wifi |

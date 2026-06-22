@@ -8,23 +8,26 @@
 #dtparam=spi=on
 
 # Enable audio (loads snd_bcm2835)
-dtparam=audio=on
+# DISABLED - dtparam=audio=on
+dtparam=audio=off
 
 # Additional overlays and parameters are documented
 # /boot/firmware/overlays/README
 
 # Automatically load overlays for detected cameras
-camera_auto_detect=1
+# DISABLED - camera_auto_detect=1
+camera_auto_detect=0
 
 # Automatically load overlays for detected DSI displays
-display_auto_detect=1
+## DISABLED - display_auto_detect=1
+display_auto_detect=0
 
 # Automatically load initramfs files, if found
 auto_initramfs=1
 
 # Enable DRM VC4 V3D driver
-dtoverlay=vc4-kms-v3d
-max_framebuffers=2
+# DISABLED - dtoverlay=vc4-kms-v3d
+# DISABLED - max_framebuffers=2
 
 # Don't have the firmware create an initial video= setting in cmdline.txt.
 # Use the kernel's default instead.
@@ -35,6 +38,13 @@ disable_overscan=1
 
 # Run as fast as firmware / board allows
 arm_boost=1
+
+# Lower GPU Memory
+gpu_mem=16
+
+# Disable Bluetooth and Wifi
+dtoverlay=disable-bt
+dtoverlay=disable-wifi
 
 [cm4]
 # Enable host mode on the 2711 built-in XHCI USB controller.
