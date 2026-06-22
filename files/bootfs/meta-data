@@ -15,4 +15,5 @@ dsmode: local
 # Warning: changing this will cause cloud-init to assume it is running on a
 # "new" instance, and to go through first time setup again (the value is
 # compared to a cached copy).
-instance_id: rpios-image
+instance_id: __HOSTNAME__
+local-hostname: __HOSTNAME__

@@ -21,3 +21,12 @@
 | gpu_mem=16 | Lower GPU memory |
 | dtoverlay=disable-bt | Disable Bluetooth |
 | dtoverlay=disable-wifi | Disable Wifi |
+
+## meta-data
+**Least interesting file of the Cloud-Init config files**
+
+| Parameter | Purpose |
+|---|---|
+| dsmode: local | Run cloud-init before networking starts |
+| instance_id | Unique identifier used by cloud-init to determine whether this is a new instance |
+| local-hostname | Define hostname, which also can be done in user-data |

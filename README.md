@@ -35,7 +35,7 @@ chmod +x *.sh
 # Todo
 - inject cmdline.txt
 - inject config.txt
-- meta-data
+- inject meta-data
 - network-config
 - user-data
 - vscode task to run TUI
