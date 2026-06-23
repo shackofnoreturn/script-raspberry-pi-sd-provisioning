@@ -16,7 +16,7 @@ hostname: __HOSTNAME__
 #  variant:
 #  options: ctrl:nocaps
 timezone: Europe/Brussels
-locale: en_US.UTF-8
+locale: nl_BE.UTF-8
 
 # Controls password authentication with the SSH daemon; the default here can
 # prevent logging into SSH with a password. Changing this is a security risk
