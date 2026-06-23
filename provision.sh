@@ -124,6 +124,19 @@ info \
 sudo touch "$BOOT_MOUNT/ssh"
 
 
+# Creating cmdline.txt
+# sed \
+#   -e "s|__HOSTNAME__|$HOSTNAME|g" \
+#   "$SCRIPT_DIR/files/bootfs/cmdline.txt" \
+#   | sudo tee "$BOOT_MOUNT/cmdline.txt" >/dev/null
+
+
+# Creating config.txt
+# sed \
+#   -e "s|__HOSTNAME__|$HOSTNAME|g" \
+#   "$SCRIPT_DIR/files/bootfs/config.txt" \
+#   | sudo tee "$BOOT_MOUNT/config.txt" >/dev/null
+
 # Creating meta-data
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
