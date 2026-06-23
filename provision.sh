@@ -92,11 +92,7 @@ if [[ -z "$IMG_FILE" ]]; then
 fi
 
 # Flashing
-info \
-    "Provisioning" \
-    "Flashing image to
-$DEVICE
-This may take several minutes..."
+update_progress 50 "Flashing image to $DEVICE..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
 
 sync
@@ -128,7 +124,14 @@ info \
 sudo touch "$BOOT_MOUNT/ssh"
 
 
-# Create User
+# Creating meta-data
+sed \
+  -e "s|__HOSTNAME__|$HOSTNAME|g" \
+  "$SCRIPT_DIR/files/bootfs/meta-data" \
+  | sudo tee "$BOOT_MOUNT/meta-data" >/dev/null
+
+
+# Creating user-data
 # info \
 #     "Provisioning" \
 #     "Creating user..."
@@ -140,18 +143,6 @@ sed \
   "$SCRIPT_DIR/files/bootfs/user-data" \
   | sudo tee "$BOOT_MOUNT/user-data" >/dev/null
 
-# HASH=$(openssl passwd -6 "$PASSWORD")
-
-# echo "${USERNAME}:${HASH}" | sudo tee "$BOOT_MOUNT/userconf.txt" >/dev/null
-
-
-# ### ===== HOSTNAME =====
-# echo "[+] Setting hostname..."
-
-# echo "$HOSTNAME" | sudo tee "$ROOT_MOUNT/etc/hostname" >/dev/null
-
-# sudo sed -i "s/127.0.1.1.*/127.0.1.1\t$HOSTNAME/" \
-#   "$ROOT_MOUNT/etc/hosts"
 
 
 # ### ===== STATIC IP =====
