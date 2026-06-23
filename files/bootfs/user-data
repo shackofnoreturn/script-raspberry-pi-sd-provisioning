@@ -15,6 +15,8 @@ hostname: __HOSTNAME__
 #  layout: gb
 #  variant:
 #  options: ctrl:nocaps
+timezone: Europe/Brussels
+locale: en_US.UTF-8
 
 # Controls password authentication with the SSH daemon; the default here can
 # prevent logging into SSH with a password. Changing this is a security risk
@@ -40,7 +42,7 @@ users:
     groups:
       - sudo
     shell: /bin/bash
-    sudo: ALL=(ALL) NOPASSWD:ALL
+    sudo: ALL=(ALL:ALL) ALL
     passwd: __PASSWORD_HASH__
     lock_passwd: false
 
@@ -63,6 +65,12 @@ package_upgrade: true
 #- rng-tools
 #- python3-gpiozero
 #- [python3-serial, 3.5-1]
+packages:
+  - curl
+  - wget
+  - git
+  - nano
+  - htop
 
 ## Write arbitrary files to the file-system (including binaries!)
 #write_files:
@@ -86,8 +94,14 @@ package_upgrade: true
 #    NdC80uQMBZhOa4VahZoaqIrwjMQSewXfxOxUhcwShcr80qLi1Jw0RSUuAIYfEJmVAAAA
 #  owner: root:root
 #  permissions: '0644'
+write_files:
+  - path: /etc/shackhq-image
+    content: |
+      hostname=__HOSTNAME__
 
 ## Run arbitrary commands at rc.local like time
 #runcmd:
 #- [ ls, -l, / ]
 #- [ sh, -xc, "echo $(date) ': hello world!'" ]
+runcmd:
+  - systemctl enable ssh

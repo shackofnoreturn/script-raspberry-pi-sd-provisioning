@@ -41,3 +41,9 @@
 | addresses | Static IP address |
 | routes | Default gateway |
 | nameservers | DNS servers |
+
+## user-data
+**Sets up user accounts and security**
+| Parameter | Purpose |
+|---|---|
+| shackadmin | Local admin account |

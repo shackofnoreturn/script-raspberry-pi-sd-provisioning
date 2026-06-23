@@ -37,6 +37,6 @@ chmod +x *.sh
 - inject config.txt
 - inject meta-data
 - inject network-config
-- user-data
+- inject user-data
 - vscode task to run TUI
 - static ip configuration
