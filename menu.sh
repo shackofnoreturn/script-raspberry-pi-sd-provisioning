@@ -39,6 +39,7 @@ clear
 # Check if the user pressed Cancel or closed the dialog
 RET=$?
 if [ $RET -ne 0 ]; then
+    clear
     break
 fi
 
@@ -74,7 +75,7 @@ EOF
     ;;
 
 5)
-    # exit 0
+    exit 0
     ;;
 
 esac
