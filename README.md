@@ -36,5 +36,5 @@ chmod +x *.sh
 - inject cmdline.txt
 - inject config.txt
 - inject network-config
-- vscode task to run TUI
-- static ip configuration
+- inject firstboot-debug.sh
+- deploy to 3 raspberry pi's
