@@ -30,3 +30,14 @@
 | dsmode: local | Run cloud-init before networking starts |
 | instance_id | Unique identifier used by cloud-init to determine whether this is a new instance |
 | local-hostname | Define hostname, which also can be done in user-data |
+
+## network-config
+**Cloud-init sets up network on first boot**
+
+| Parameter | Purpose |
+|---|---|
+| dhcp4: false | Disable DHCP |
+| optional: false | Wait for network before continuing boot |
+| addresses | Static IP address |
+| routes | Default gateway |
+| nameservers | DNS servers |
