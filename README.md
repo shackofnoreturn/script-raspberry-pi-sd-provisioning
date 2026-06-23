@@ -20,19 +20,23 @@ There is also a single use firstboot service being injected into the root partit
 - firstboot-debug.sh
 
 ## How
-**Make all .sh files executable if not already**
+Make all .sh files executable if not already:
 ```
 chmod +x *.sh
 ```
 
-**Run script after inserting your sd card**
+
+Run script after inserting your sd card:
 *Be careful which device you pick when provisioning* 
 
 ```
 ./menu.sh
 ```
 
-# Todo
+To run the provisioning menu inside VSCode:
+`CTRL` + `SHIFT` + `P` -> Run Task
+
+## Todo
 - inject cmdline.txt
 - inject config.txt
 - inject network-config
