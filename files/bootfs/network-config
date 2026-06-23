@@ -30,7 +30,8 @@ network:
       dhcp4: false
       optional: false
 
-      addresses: __IP_ADDRESS__/24
+      addresses: 
+        - __IP_ADDRESS__/24
 
       routes:
         - to: default

@@ -39,6 +39,5 @@ To run the provisioning menu inside VSCode:
 ## Todo
 - inject cmdline.txt
 - inject config.txt
-- inject network-config
 - inject firstboot-debug.sh
 - deploy to 3 raspberry pi's
