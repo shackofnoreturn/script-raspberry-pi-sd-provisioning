@@ -137,11 +137,25 @@ sudo touch "$BOOT_MOUNT/ssh"
 #   "$SCRIPT_DIR/files/bootfs/config.txt" \
 #   | sudo tee "$BOOT_MOUNT/config.txt" >/dev/null
 
+
 # Creating meta-data
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
   "$SCRIPT_DIR/files/bootfs/meta-data" \
   | sudo tee "$BOOT_MOUNT/meta-data" >/dev/null
+
+
+# Creating network-config
+# IFS=',' read -ra DNS <<< "$DNS_SERVERS"
+# DNS1=$(echo "${DNS[0]}" | xargs)
+# DNS2=$(echo "${DNS[1]}" | xargs)
+# sed \
+#   -e "s|__IP_ADDRESS__|$IP_ADDRESS|g" \
+#   -e "s|__GATEWAY__|$GATEWAY|g" \
+#   -e "s|__DNS1__|$DNS1|g" \
+#   -e "s|__DNS2__|$DNS2|g" \
+#   "$SCRIPT_DIR/files/bootfs/network-config" \
+#   | sudo tee "$BOOT_MOUNT/network-config" >/dev/null
 
 
 # Creating user-data
