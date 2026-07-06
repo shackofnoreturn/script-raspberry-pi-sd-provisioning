@@ -171,32 +171,6 @@ sed \
   | sudo tee "$BOOT_MOUNT/user-data" >/dev/null
 
 
-
-# ### ===== STATIC IP =====
-# echo "[+] Configuring static IP..."
-
-# sudo mkdir -p "$ROOT_MOUNT/etc/NetworkManager/system-connections"
-
-# sudo tee "$ROOT_MOUNT/etc/NetworkManager/system-connections/eth0-static.nmconnection" >/dev/null <<EOF
-# [connection]
-# id=eth0-static
-# type=ethernet
-# interface-name=eth0
-# autoconnect=true
-
-# [ipv4]
-# method=manual
-# address1=${IP_ADDRESS}/24,${GATEWAY}
-# dns=${DNS_SERVERS// /;};
-
-# [ipv6]
-# method=ignore
-# EOF
-
-# sudo chmod 600 \
-#   "$ROOT_MOUNT/etc/NetworkManager/system-connections/eth0-static.nmconnection"
-
-
 # First Boot Debug
 info \
     "Provisioning" \
@@ -304,14 +278,8 @@ msg \
     "Provisioning Complete" \
     "SD card successfully prepared.
 
-Hostname:
-$HOSTNAME
+Hostname: $HOSTNAME
+IP Address: $IP_ADDRESS
+Username: $USERNAME
 
-IP Address:
-$IP_ADDRESS
-
-Username:
-$USERNAME
-
-SSH Command:
-ssh ${USERNAME}@${IP_ADDRESS}"
+SSH Command: ssh ${USERNAME}@${IP_ADDRESS}"
