@@ -13,6 +13,9 @@ IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKDIR="/tmp/pi-image"
 CACHE_IMG="$WORKDIR/image"
+LOOP_DEVICE=$(sudo losetup -Pf --show "$CACHE_IMG")
+BOOT_DEVICE="${LOOP_DEVICE}p1"
+ROOT_DEVICE="${LOOP_DEVICE}p2"
 BOOT_MOUNT="/mnt/pi-boot"
 ROOT_MOUNT="/mnt/pi-root"
 
@@ -123,10 +126,13 @@ sudo touch "$BOOT_MOUNT/ssh"
 
 # Creating cmdline.txt
 # update_progress 65 "Creating cmdline.txt..."
-# sed \
-#   -e "s|__HOSTNAME__|$HOSTNAME|g" \
-#   "$SCRIPT_DIR/files/bootfs/cmdline.txt" \
-#   | sudo tee "$BOOT_MOUNT/cmdline.txt" >/dev/null
+ROOT_DEVICE=/dev/sdb2
+ROOT_PARTUUID=$(sudo blkid -s PARTUUID -o value "$ROOT_DEVICE")
+# if [ -z "$ROOT_PARTUUID" ]; then
+#     echo "ERROR: Could not determine root PARTUUID"
+#     exit 1
+# fi
+sudo sed -i "s/__ROOT_PARTUUID__/${ROOT_PARTUUID}/" "$BOOT_MOUNT/cmdline.txt"
 
 
 # Creating config.txt

@@ -1,5 +1,5 @@
 # Raspberry Pi SD Card Provisioning
-    An interactive menu script to provision raspberry pi SD Cards with some extra TUI flair!
+*An interactive menu script to provision raspberry pi SD Cards with some extra TUI flair!*
 
 ## What
 Raspberry PI OS image flasher in TUI fashion.
@@ -50,6 +50,3 @@ To run the provisioning menu **inside VSCode**:
 - Debug: Loading graphic when loading debug log
 - Provisioning: Flashing graphic
 - Complete loading bar implementation
-
-## Failed
-- inject cmdline.txt
