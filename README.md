@@ -43,3 +43,13 @@ To run the provisioning menu **inside VSCode**:
 - inject config.txt
 - inject firstboot-debug.sh
 - deploy to 3 raspberry pi's
+- look for known_hosts and remove previous entry
+- Provisioning: "No" on Confirm Flash doesn't exit application
+- Debug: "Cancel" doesn't exit application
+- Select SD Card: "Cancel" doesn't exit application
+- Select Partition: "Cancel" doesn't exit application
+- Configuration: "Cancel" doesn't exit application
+- All config options: "Cancel" doesn't exit application
+- Debug: Loading graphic when loading debug log
+- Provisioning: Flashing graphic
+- Complete loading bar implementation

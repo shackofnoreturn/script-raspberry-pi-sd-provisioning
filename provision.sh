@@ -99,6 +99,7 @@ sync
 
 
 # Wait for partitions
+# update_progress 55 "Waiting for partitions to be recognized..."
 sleep 5
 
 BOOT_PART="${DEVICE}1"
@@ -106,11 +107,9 @@ ROOT_PART="${DEVICE}2"
 
 
 # Mount partitions
+# update_progress 58 "Mounting partitions..."
 sudo mkdir -p "$BOOT_MOUNT"
 sudo mkdir -p "$ROOT_MOUNT"
-info \
-    "Provisioning" \
-    "Mounting partitions..."
 sudo mount "$BOOT_PART" "$BOOT_MOUNT"
 sudo mount "$ROOT_PART" "$ROOT_MOUNT"
 
@@ -118,13 +117,12 @@ trap 'sudo umount "$BOOT_MOUNT" 2>/dev/null || true; sudo umount "$ROOT_MOUNT" 2
 
 
 # Enable SSH
-info \
-    "Provisioning" \
-    "Enabling SSH..."
+# update_progress 60 "Enabling SSH..."
 sudo touch "$BOOT_MOUNT/ssh"
 
 
 # Creating cmdline.txt
+# update_progress 65 "Creating cmdline.txt..."
 # sed \
 #   -e "s|__HOSTNAME__|$HOSTNAME|g" \
 #   "$SCRIPT_DIR/files/bootfs/cmdline.txt" \
@@ -132,6 +130,7 @@ sudo touch "$BOOT_MOUNT/ssh"
 
 
 # Creating config.txt
+# update_progress 70 "Creating config.txt..."
 # sed \
 #   -e "s|__HOSTNAME__|$HOSTNAME|g" \
 #   "$SCRIPT_DIR/files/bootfs/config.txt" \
@@ -139,6 +138,7 @@ sudo touch "$BOOT_MOUNT/ssh"
 
 
 # Creating meta-data
+# update_progress 75 "Creating meta-data..."
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
   "$SCRIPT_DIR/files/bootfs/meta-data" \
@@ -146,6 +146,7 @@ sed \
 
 
 # Creating network-config
+# update_progress 80 "Creating network-config..."
 IFS=',' read -ra DNS <<< "$DNS_SERVERS"
 DNS1=$(echo "${DNS[0]}" | xargs)
 DNS2=$(echo "${DNS[1]}" | xargs)
@@ -159,9 +160,7 @@ sed \
 
 
 # Creating user-data
-# info \
-#     "Provisioning" \
-#     "Creating user..."
+# update_progress 85 "Creating user-data..."
 PASSWORD_HASH=$(openssl passwd -6 "$PASSWORD")
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
@@ -172,12 +171,8 @@ sed \
 
 
 # First Boot Debug
-info \
-    "Provisioning" \
-    "Installing first-boot diagnostics..."
-
+# update_progress 90 "Creating first boot debug script..."
 sudo mkdir -p "$ROOT_MOUNT/usr/local/sbin"
-
 sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null <<'EOF'
 #!/bin/bash
 
@@ -266,14 +261,14 @@ sudo ln -sf \
 
 
 # Cleanup
-info \
-    "Provisioning" \
-    "Syncing and unmounting..."
+# update_progress 95 "Cleaning up..."
 sync
 sudo umount "$BOOT_MOUNT"
 sudo umount "$ROOT_MOUNT"
 
 trap - EXIT
+
+# update_progress 100 "Provisioning complete."
 msg \
     "Provisioning Complete" \
     "SD card successfully prepared.
