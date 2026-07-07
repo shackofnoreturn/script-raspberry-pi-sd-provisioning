@@ -173,83 +173,31 @@ sed \
 # First Boot Debug
 # update_progress 90 "Creating first boot debug script..."
 sudo mkdir -p "$ROOT_MOUNT/usr/local/sbin"
-sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null <<'EOF'
-#!/bin/bash
-
-touch firstboot-debug.log.ok
-
-LOG=/boot/firstboot-debug.txt
-
-{
-echo "===== FIRST BOOT DEBUG ====="
-date
-echo
-
-echo "=== HOSTNAME ==="
-hostname
-
-echo
-echo "=== KERNEL CMDLINE ==="
-cat /proc/cmdline
-
-echo
-echo "=== IP ADDRESSES ==="
-ip addr
-
-echo
-echo "=== ROUTES ==="
-ip route
-
-echo
-echo "=== NETWORK DEVICES ==="
-nmcli device status 2>/dev/null || echo "nmcli not available"
-
-echo
-echo "=== NETWORK CONNECTIONS ==="
-nmcli connection show 2>/dev/null || true
-
-echo
-echo "=== DNS CONFIG ==="
-cat /etc/resolv.conf
-
-echo
-echo "=== DMESG NETWORK ==="
-dmesg -T | grep -i -E 'eth|network|link|dhcp'
-
-echo
-echo "=== NETWORKMANAGER LOGS ==="
-journalctl -u NetworkManager --no-pager -n 200 2>/dev/null || true
-
-echo
-echo "===== END DEBUG ====="
-
-} > "$LOG" 2>&1
-
-# Self-remove after first successful run
-# systemctl disable firstboot-debug.service 2>/dev/null || true
-# rm -f /etc/systemd/system/firstboot-debug.service
-# rm -f /etc/systemd/system/multi-user.target.wants/firstboot-debug.service
-# rm -f /usr/local/sbin/firstboot-debug.sh
-EOF
+IFS=',' read -ra DNS <<< "$DNS_SERVERS"
+DNS1=$(echo "${DNS[0]}" | xargs)
+DNS2=$(echo "${DNS[1]}" | xargs)
+sed \
+  -e "s|__IP_ADDRESS__|$IP_ADDRESS|g" \
+  -e "s|__GATEWAY__|$GATEWAY|g" \
+  -e "s|__DNS1__|$DNS1|g" \
+  -e "s|__DNS2__|$DNS2|g" \
+  "$SCRIPT_DIR/files/rootfs/usr/local/sbin/firstboot-debug.sh" \
+  | sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null
 
 # Make executable
 sudo chmod +x "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh"
 
 # Create systemd service
-sudo tee "$ROOT_MOUNT/etc/systemd/system/firstboot-debug.service" >/dev/null <<'EOF'
-[Unit]
-Description=First boot debug dump
-After=network-online.target
-Wants=network-online.target
-
-[Service]
-Type=oneshot
-ExecStart=/usr/local/sbin/firstboot-debug.sh
-RemainAfterExit=true
-
-[Install]
-WantedBy=multi-user.target
-EOF
+IFS=',' read -ra DNS <<< "$DNS_SERVERS"
+DNS1=$(echo "${DNS[0]}" | xargs)
+DNS2=$(echo "${DNS[1]}" | xargs)
+sed \
+  -e "s|__IP_ADDRESS__|$IP_ADDRESS|g" \
+  -e "s|__GATEWAY__|$GATEWAY|g" \
+  -e "s|__DNS1__|$DNS1|g" \
+  -e "s|__DNS2__|$DNS2|g" \
+  "$SCRIPT_DIR/files/rootfs/etc/systemd/system/firstboot-debug.service" \
+  | sudo tee "$ROOT_MOUNT/etc/systemd/system/firstboot-debug.service" >/dev/null
 
 # Enable service
 sudo mkdir -p \

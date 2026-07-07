@@ -39,9 +39,6 @@ To run the provisioning menu **inside VSCode**:
 
 
 ## Todo
-- inject cmdline.txt
-- inject config.txt
-- inject firstboot-debug.sh
 - deploy to 3 raspberry pi's
 - look for known_hosts and remove previous entry
 - Provisioning: "No" on Confirm Flash doesn't exit application
@@ -53,3 +50,7 @@ To run the provisioning menu **inside VSCode**:
 - Debug: Loading graphic when loading debug log
 - Provisioning: Flashing graphic
 - Complete loading bar implementation
+
+## Failed
+- inject cmdline.txt
+- inject config.txt
