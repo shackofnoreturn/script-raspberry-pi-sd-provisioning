@@ -53,4 +53,3 @@ To run the provisioning menu **inside VSCode**:
 
 ## Failed
 - inject cmdline.txt
-- inject config.txt

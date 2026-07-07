@@ -131,10 +131,10 @@ sudo touch "$BOOT_MOUNT/ssh"
 
 # Creating config.txt
 # update_progress 70 "Creating config.txt..."
-# sed \
-#   -e "s|__HOSTNAME__|$HOSTNAME|g" \
-#   "$SCRIPT_DIR/files/bootfs/config.txt" \
-#   | sudo tee "$BOOT_MOUNT/config.txt" >/dev/null
+sed \
+  -e "s|__HOSTNAME__|$HOSTNAME|g" \
+  "$SCRIPT_DIR/files/bootfs/config.txt" \
+  | sudo tee "$BOOT_MOUNT/config.txt" >/dev/null
 
 
 # Creating meta-data
