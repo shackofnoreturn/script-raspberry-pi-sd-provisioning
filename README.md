@@ -40,7 +40,6 @@ To run the provisioning menu **inside VSCode**:
 
 ## Todo
 - deploy to 3 raspberry pi's
-- look for known_hosts and remove previous entry
 - Provisioning: "No" on Confirm Flash doesn't exit application
 - Debug: "Cancel" doesn't exit application
 - Select SD Card: "Cancel" doesn't exit application

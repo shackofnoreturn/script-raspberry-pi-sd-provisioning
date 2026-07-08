@@ -37,12 +37,12 @@ info() {
 
 ## Error Box
 error() {
-    dialog \
-        --clear \
-        --backtitle "$BACKTITLE" \
-        --title "Error" \
-        --msgbox "$1" \
-        12 70
+  dialog \
+      --clear \
+      --backtitle "$BACKTITLE" \
+      --title "Error" \
+      --msgbox "$1" \
+      12 70
 }
 
 ## Input Box

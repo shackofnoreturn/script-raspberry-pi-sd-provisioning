@@ -33,7 +33,8 @@ CHOICE=$(menu "Main Menu" "Select an action" \
     2 "Retrieve Debug Data" \
     3 "Configuration" \
     4 "Show Current Config" \
-    5 "Exit")
+    5 "Remove Known Hosts" \
+    6 "Exit")
 clear
 
 # Check if the user pressed Cancel or closed the dialog
@@ -75,6 +76,29 @@ EOF
     ;;
 
 5)
+    remove_host() {
+        local host="$1"
+        local output
+
+        output=$(ssh-keygen -R "$host" 2>&1)
+        local rc=$?
+
+        if [ $rc -ne 0 ]; then
+            error "Failed to remove known_hosts entry for $host."
+            return 1
+        fi
+
+        if grep -q "not found" <<<"$output"; then
+            error "No known_hosts entry for $host."
+        else
+            msg "Removed known_hosts entry for $host"
+        fi
+    }
+    remove_host "$HOSTNAME"
+    remove_host "$IP_ADDRESS"
+    remove_host "[$IP_ADDRESS]:22"
+    ;;
+6)
     exit 0
     ;;
 
