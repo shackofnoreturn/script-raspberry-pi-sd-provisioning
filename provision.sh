@@ -32,7 +32,7 @@ confirm \
 $DEVICE_INFO
 All data will be permanently erased.
 Continue?"
-[[ $? -eq 0 ]] || exit 0
+[[ $? -eq 0 ]] || exit 1
 
 # Setup
 PROGRESS_PIPE=$(mktemp -u)

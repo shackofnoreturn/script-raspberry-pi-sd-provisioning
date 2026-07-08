@@ -47,7 +47,7 @@ fi
 # Handle menu choices
 case $CHOICE in
 1)
-    ./provision.sh
+    ./provision.sh || true
     ;;
 
 2)
