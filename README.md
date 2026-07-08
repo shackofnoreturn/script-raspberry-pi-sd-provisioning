@@ -40,6 +40,5 @@ To run the provisioning menu **inside VSCode**:
 
 ## Todo
 - deploy to 3 raspberry pi's
-- Debug: Loading graphic when loading debug log
 - Provisioning: Flashing graphic
 - Complete loading bar implementation

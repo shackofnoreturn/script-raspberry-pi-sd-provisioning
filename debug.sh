@@ -49,12 +49,23 @@ fi
 mount_partition "$PARTITION"
 
 # Locate Debug File
-DEBUG_FILE=$(
-    sudo find "$MOUNT_POINT" -type f \
-        -name "firstboot-debug.txt" \
-        2>/dev/null \
-        | head -n1
-)
+dialog \
+    --backtitle "$BACKTITLE" \
+    --title "Searching" \
+    --infobox "Locating firstboot-debug.txt..." 5 50
+
+DEBUG_FILE=$(sudo find "$MOUNT_POINT" -type f \
+    -name "firstboot-debug.txt" \
+    2>/dev/null | head -n1)
+
+clear
+
+# DEBUG_FILE=$(
+#     sudo find "$MOUNT_POINT" -type f \
+#         -name "firstboot-debug.txt" \
+#         2>/dev/null \
+#         | head -n1
+# )
 
 if [ -z "$DEBUG_FILE" ]; then
     msg "Debug File Not Found" "Could not find firstboot-debug.txt on:\n\n$PARTITION"
