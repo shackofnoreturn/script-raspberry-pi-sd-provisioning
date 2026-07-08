@@ -14,7 +14,7 @@ clear
 # Check if the user pressed Cancel or closed the dialog
 RET=$?
 if [ $RET -ne 0 ]; then
-    exit 0
+    exit 1
 fi
 
 # Select Partition

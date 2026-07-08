@@ -40,11 +40,6 @@ To run the provisioning menu **inside VSCode**:
 
 ## Todo
 - deploy to 3 raspberry pi's
-- Debug: "Cancel" doesn't exit application
-- Select SD Card: "Cancel" doesn't exit application
-- Select Partition: "Cancel" doesn't exit application
-- Configuration: "Cancel" doesn't exit application
-- All config options: "Cancel" doesn't exit application
 - Debug: Loading graphic when loading debug log
 - Provisioning: Flashing graphic
 - Complete loading bar implementation

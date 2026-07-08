@@ -28,7 +28,7 @@ CHOICE=$(menu "Configuration" "Select setting to edit" \
 # Check if the user pressed Cancel or closed the dialog
 RET=$?
 if [ $RET -ne 0 ]; then
-    break
+    exit 1
 fi
 
 # Handle menu choices

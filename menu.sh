@@ -51,11 +51,11 @@ case $CHOICE in
     ;;
 
 2)
-    ./debug.sh
+    ./debug.sh || true
     ;;
 
 3)
-    ./config.sh
+    ./config.sh || true
     source "$CONFIG_FILE"
     ;;
 
