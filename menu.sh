@@ -34,7 +34,8 @@ CHOICE=$(menu "Main Menu" "Select an action" \
     3 "Configuration" \
     4 "Show Current Config" \
     5 "Remove Known Hosts" \
-    6 "Exit")
+    6 "Launch SSH Session" \
+    7 "Exit")
 clear
 
 # Check if the user pressed Cancel or closed the dialog
@@ -99,6 +100,9 @@ EOF
     remove_host "[$IP_ADDRESS]:22"
     ;;
 6)
+    ssh ${USERNAME}@${IP_ADDRESS}
+    ;;
+7)
     exit 0
     ;;
 
