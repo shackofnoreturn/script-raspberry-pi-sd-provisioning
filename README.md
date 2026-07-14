@@ -42,3 +42,4 @@ To run the provisioning menu **inside VSCode**:
 - deploy to 3 raspberry pi's
 - Provisioning: Flashing graphic
 - Complete loading bar implementation
+- Add SSH connect option

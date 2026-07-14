@@ -13,9 +13,6 @@ IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKDIR="/tmp/pi-image"
 CACHE_IMG="$WORKDIR/image"
-LOOP_DEVICE=$(sudo losetup -Pf --show "$CACHE_IMG")
-BOOT_DEVICE="${LOOP_DEVICE}p1"
-ROOT_DEVICE="${LOOP_DEVICE}p2"
 BOOT_MOUNT="/mnt/pi-boot"
 ROOT_MOUNT="/mnt/pi-root"
 
@@ -94,6 +91,11 @@ if [[ -z "$IMG_FILE" ]]; then
   exit 1
 fi
 
+# Loop device setup
+LOOP_DEVICE=$(sudo losetup -Pf --show "$CACHE_IMG")
+BOOT_DEVICE="${LOOP_DEVICE}p1"
+ROOT_DEVICE="${LOOP_DEVICE}p2"
+
 # Flashing
 update_progress 50 "Flashing image to $DEVICE..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
@@ -136,7 +138,7 @@ sudo sed -i "s/__ROOT_PARTUUID__/${ROOT_PARTUUID}/" "$BOOT_MOUNT/cmdline.txt"
 
 
 # Creating config.txt
-# update_progress 70 "Creating config.txt..."
+# update_progress 70 "Creating conµfig.txt..."
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
   "$SCRIPT_DIR/files/bootfs/config.txt" \
