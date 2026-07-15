@@ -8,7 +8,9 @@
 source "$(dirname "$0")/lib/ui.sh"
 source ./config.env
 
+
 # Config
+log_debug "Setting up configuration variables..."
 IMG_URL="https://downloads.raspberrypi.com/raspios_lite_armhf_latest"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 WORKDIR="/tmp/pi-image"
@@ -16,12 +18,15 @@ CACHE_IMG="$WORKDIR/image"
 BOOT_MOUNT="/mnt/pi-boot"
 ROOT_MOUNT="/mnt/pi-root"
 
+
 # Prechecking
+log_debug "Checking if $DEVICE is a valid block device..."
 if [[ ! -b "$DEVICE" ]]; then
   error "$DEVICE is not a valid block device."
   exit 1
 fi
 
+log_debug "Confirming with user about flashing $DEVICE..."
 DEVICE_INFO=$(lsblk -dno NAME,SIZE,MODEL "$DEVICE")
 confirm \
   "Confirm Flash" \
@@ -30,16 +35,33 @@ $DEVICE_INFO
 All data will be permanently erased.
 Continue?"
 [[ $? -eq 0 ]] || exit 1
+log_debug "User confirmed to proceed with flashing $DEVICE."
 
 # Setup
+log_debug "Setting up progress pipe..."
 PROGRESS_PIPE=$(mktemp -u)
 mkfifo "$PROGRESS_PIPE"
-dialog \
-    --backtitle "$BACKTITLE" \
-    --title "Provisioning Raspberry Pi" \
-    --gauge "Starting..." \
-    10 70 0 < "$PROGRESS_PIPE" &
+
+# Open the pipe for both reading and writing so it never blocks
+exec 3<>"$PROGRESS_PIPE"
+echo "FIFO Descriptor: $(ls -l /proc/$$/fd/3)" >> /tmp/debug.log
+
+# Start dialog reading from the pipe
+dialog --gauge "Starting..." 8 70 0 <&3 &
 GAUGE_PID=$!
+log_debug "Gauge process started with PID: $GAUGE_PID"
+
+
+sleep 1
+
+printf "10\nXXX\nTest message\nXXX\n" >&3
+sleep 2
+
+printf "50\nXXX\nHalfway there\nXXX\n" >&3
+sleep 2
+
+printf "100\nXXX\nDone\nXXX\n" >&3
+
 
 update_progress 1 "Creating working directory..."
 mkdir -p "$WORKDIR"
@@ -98,13 +120,15 @@ ROOT_DEVICE="${LOOP_DEVICE}p2"
 
 # Flashing
 update_progress 50 "Flashing image to $DEVICE..."
+log_debug "Flashing image to $DEVICE..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
-
+log_debug "Flashing complete. Syncing..."
 sync
 
 
 # Wait for partitions
 # update_progress 55 "Waiting for partitions to be recognized..."
+log_debug "Waiting for partitions to be recognized..."
 sleep 5
 
 BOOT_PART="${DEVICE}1"
@@ -113,6 +137,7 @@ ROOT_PART="${DEVICE}2"
 
 # Mount partitions
 # update_progress 58 "Mounting partitions..."
+log_debug "Mounting partitions..."
 sudo mkdir -p "$BOOT_MOUNT"
 sudo mkdir -p "$ROOT_MOUNT"
 sudo mount "$BOOT_PART" "$BOOT_MOUNT"
@@ -123,12 +148,14 @@ trap 'sudo umount "$BOOT_MOUNT" 2>/dev/null || true; sudo umount "$ROOT_MOUNT" 2
 
 # Enable SSH
 # update_progress 60 "Enabling SSH..."
+log_debug "Enabling SSH..."
 sudo touch "$BOOT_MOUNT/ssh"
 
 
 # Creating cmdline.txt
 # update_progress 65 "Creating cmdline.txt..."
-ROOT_DEVICE=/dev/sdb2
+log_debug "Creating cmdline.txt..."
+ROOT_DEVICE="${DEVICE}2"
 ROOT_PARTUUID=$(sudo blkid -s PARTUUID -o value "$ROOT_DEVICE")
 # if [ -z "$ROOT_PARTUUID" ]; then
 #     echo "ERROR: Could not determine root PARTUUID"
@@ -139,6 +166,7 @@ sudo sed -i "s/__ROOT_PARTUUID__/${ROOT_PARTUUID}/" "$BOOT_MOUNT/cmdline.txt"
 
 # Creating config.txt
 # update_progress 70 "Creating conµfig.txt..."
+log_debug "Creating config.txt..."
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
   "$SCRIPT_DIR/files/bootfs/config.txt" \
@@ -146,6 +174,7 @@ sed \
 
 
 # Creating meta-data
+log_debug "Creating meta-data..."
 # update_progress 75 "Creating meta-data..."
 sed \
   -e "s|__HOSTNAME__|$HOSTNAME|g" \
@@ -154,6 +183,7 @@ sed \
 
 
 # Creating network-config
+log_debug "Creating network-config..."
 # update_progress 80 "Creating network-config..."
 IFS=',' read -ra DNS <<< "$DNS_SERVERS"
 DNS1=$(echo "${DNS[0]}" | xargs)
@@ -168,6 +198,7 @@ sed \
 
 
 # Creating user-data
+log_debug "Creating user-data..."
 # update_progress 85 "Creating user-data..."
 PASSWORD_HASH=$(openssl passwd -6 "$PASSWORD")
 sed \
@@ -179,6 +210,7 @@ sed \
 
 
 # First Boot Debug
+log_debug "Creating first boot debug script..."
 # update_progress 90 "Creating first boot debug script..."
 sudo mkdir -p "$ROOT_MOUNT/usr/local/sbin"
 IFS=',' read -ra DNS <<< "$DNS_SERVERS"
@@ -193,9 +225,11 @@ sed \
   | sudo tee "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh" >/dev/null
 
 # Make executable
+log_debug "Making firstboot-debug.sh executable..."
 sudo chmod +x "$ROOT_MOUNT/usr/local/sbin/firstboot-debug.sh"
 
 # Create systemd service
+log_debug "Creating firstboot-debug.service..."
 IFS=',' read -ra DNS <<< "$DNS_SERVERS"
 DNS1=$(echo "${DNS[0]}" | xargs)
 DNS2=$(echo "${DNS[1]}" | xargs)
@@ -208,6 +242,7 @@ sed \
   | sudo tee "$ROOT_MOUNT/etc/systemd/system/firstboot-debug.service" >/dev/null
 
 # Enable service
+log_debug "Enabling firstboot-debug.service..."
 sudo mkdir -p \
   "$ROOT_MOUNT/etc/systemd/system/multi-user.target.wants"
 
@@ -217,14 +252,27 @@ sudo ln -sf \
 
 
 # Cleanup
+log_debug "Cleaning up..."
 # update_progress 95 "Cleaning up..."
 sync
 sudo umount "$BOOT_MOUNT"
 sudo umount "$ROOT_MOUNT"
 
+log_debug "Detaching loop device..."
 trap - EXIT
 
-# update_progress 100 "Provisioning complete."
+log_debug "Executing losetup detach..."
+exec 3>&-
+
+log_debug "Killing gauge process..."
+kill -9 "$GAUGE_PID" 2>/dev/null
+log_debug "Waiting for gauge process to exit..."
+wait "$GAUGE_PID" 2>/dev/null || true
+
+log_debug "Removing progress pipe..."
+rm -f "$PROGRESS_PIPE"
+
+log_debug "Provisioning complete. Displaying completion message..."
 msg \
     "Provisioning Complete" \
     "SD card successfully prepared.

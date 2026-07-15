@@ -138,16 +138,37 @@ mount_partition() {
 }
 
 ## Update Progress Bar
+# update_progress() {
+
+#     local pct="$1"
+#     local msg="$2"
+
+#     {
+#         echo "XXX"
+#         echo "$pct"
+#         echo "$msg"
+#         echo "XXX"
+#     } > "$PROGRESS_PIPE"
+
+# }
+
 update_progress() {
+    local percent="$1"
+    local text="$2"
 
-    local pct="$1"
-    local msg="$2"
+    printf '%s\nXXX\n%s\nXXX\n' \
+        "$percent" \
+        "$text" >&3
+}
 
-    {
-        echo "XXX"
-        echo "$pct"
-        echo "$msg"
-        echo "XXX"
-    } > "$PROGRESS_PIPE"
+# update_progress() {
+#     echo "Writing progress..."
+#     printf "%s\nXXX\n%s\nXXX\n" "$1" "$2" >&3
+#     echo "Progress written"
+# }
 
+## Debug Logging
+log_debug() {
+    local message="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') [DEBUG] $message" >> /tmp/debug.log
 }
