@@ -39,5 +39,6 @@ To run the provisioning menu **inside VSCode**:
 
 
 ## Todo
-- deploy to 3 raspberry pi's
 - Add menu debug show option
+- Provision ending with cleanup errors
+- Full code review & cleanup
