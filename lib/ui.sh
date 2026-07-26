@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Includes
-source "system.sh"
+source "$(dirname "$0")/lib/system.sh"
 
 # Global UI Variables
 BACKTITLE="Pi Provisioner"
