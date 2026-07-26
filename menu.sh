@@ -6,7 +6,8 @@
 # retrieving debug data, and managing configuration settings.
 #
 
-# Configuration file path
+# Configuration
+set -euo pipefail
 CONFIG_FILE="$(dirname "$0")/config.env"
 
 # Create default configuration file if it doesn't exist
