@@ -37,6 +37,7 @@ Continue?"
 [[ $? -eq 0 ]] || exit 1
 log_debug "User confirmed to proceed with flashing $DEVICE."
 
+
 # Setup
 log_debug "Setting up progress pipe..."
 PROGRESS_PIPE=$(mktemp -u)
@@ -51,21 +52,11 @@ dialog --gauge "Starting..." 8 70 0 <&3 &
 GAUGE_PID=$!
 log_debug "Gauge process started with PID: $GAUGE_PID"
 
-
-sleep 1
-
-printf "10\nXXX\nTest message\nXXX\n" >&3
-sleep 2
-
-printf "50\nXXX\nHalfway there\nXXX\n" >&3
-sleep 2
-
-printf "100\nXXX\nDone\nXXX\n" >&3
-
-
 update_progress 1 "Creating working directory..."
 mkdir -p "$WORKDIR"
 cd "$WORKDIR"
+sleep 1
+
 
 # Downloading
 update_progress 5 "Checking image cache..."
@@ -73,6 +64,8 @@ if [[ ! -f "$CACHE_IMG" ]]; then
   update_progress 15 "Downloading Raspberry Pi OS..."
   wget -O "$CACHE_IMG" "$IMG_URL"
 fi
+sleep 1
+
 
 # Extracting
 update_progress 30 "Extracting image..."
@@ -92,6 +85,8 @@ else
   error "ERROR: Unknown image format: $TYPE"
   exit 1
 fi
+sleep 1
+
 
 # Locating
 update_progress 40 "Locating image file..."
@@ -117,6 +112,8 @@ fi
 LOOP_DEVICE=$(sudo losetup -Pf --show "$CACHE_IMG")
 BOOT_DEVICE="${LOOP_DEVICE}p1"
 ROOT_DEVICE="${LOOP_DEVICE}p2"
+sleep 1
+
 
 # Flashing
 update_progress 50 "Flashing image to $DEVICE..."
