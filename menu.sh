@@ -93,7 +93,7 @@ EOF
         if grep -q "not found" <<<"$output"; then
             error "No known_hosts entry for $host."
         else
-            msg "Removed known_hosts entry for $host"
+            msg "Remove Known Host" "Removed known_hosts entry for $host"
         fi
     }
     remove_host "$HOSTNAME"
