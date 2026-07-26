@@ -1,5 +1,7 @@
 #!/bin/bash
-set -euo pipefail
+
+# Includes
+source "system.sh"
 
 # Global UI Variables
 BACKTITLE="Pi Provisioner"
@@ -7,6 +9,7 @@ BACKTITLE="Pi Provisioner"
 # Shared UI Functions
 ## Message Box
 msg() {
+  log_debug "$1 - $2 (msg)" "INFO"
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Info}" \
          --msgbox "$2" 10 60
@@ -14,6 +17,7 @@ msg() {
 
 ## Text Box
 text() {
+  log_debug "$1 - $2 (text)" "INFO"
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Info}" \
          --textbox "$2" 15 60
@@ -21,6 +25,7 @@ text() {
 
 ## Display Box
 display() {
+  log_debug "$1 - $2 (display)" "INFO"
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Info}" \
          --textbox "$2" 30 120
@@ -28,15 +33,17 @@ display() {
 
 ## Info Box
 info() {
-    dialog \
-        --backtitle "$BACKTITLE" \
-        --title "$1" \
-        --infobox "$2" \
-        8 60
+  log_debug "$1 - $2 (info)" "INFO"
+  dialog \
+      --backtitle "$BACKTITLE" \
+      --title "$1" \
+      --infobox "$2" \
+      8 60
 }
 
 ## Error Box
 error() {
+  log_debug "$1 (error)" "ERROR"
   dialog \
       --clear \
       --backtitle "$BACKTITLE" \
@@ -47,6 +54,7 @@ error() {
 
 ## Input Box
 input() {
+  log_debug "$1 - $2 - $3 (input)" "INFO"
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Input}" \
          --inputbox "$2" 10 60 "${3:-}" \
@@ -56,6 +64,7 @@ input() {
 ## Password Box
 ## Input Box
 secure() {
+  log_debug "$1 - $2 - $3 (secure)" "INFO"
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Input}" \
          --insecure \
@@ -65,6 +74,7 @@ secure() {
 
 ## Yes/No Prompt
 confirm() {
+  log_debug "$1 - $2 (confirm)" "INFO"
   dialog --backtitle "$BACKTITLE" \
          --title "${1:-Confirm}" \
          --yesno "$2" 10 60
@@ -72,19 +82,21 @@ confirm() {
 
 # Progress Bar
 progress() {
-    local percent="$1"
-    local message="$2"
+  log_debug "$1 - $2 (progress)" "INFO"
+  local percent="$1"
+  local message="$2"
 
-    {
-        echo "XXX"
-        echo "$percent"
-        echo "$message"
-        echo "XXX"
-    } > "$PROGRESS_PIPE"
+  {
+      echo "XXX"
+      echo "$percent"
+      echo "$message"
+      echo "XXX"
+  } > "$PROGRESS_PIPE"
 }
 
 ## Menu Wrapper
 menu() {
+  log_debug "$1 - $2 - $3 (menu)" "INFO"
   dialog --clear \
          --backtitle "$BACKTITLE" \
          --title "$1" \
@@ -93,6 +105,8 @@ menu() {
 
 ## Device Selection
 select_device() {
+  log_debug "Selecting device" "INFO"
+
   mapfile -t DEVICES < <(
       lsblk -dpno NAME,SIZE,MODEL,TRAN |
       grep -E 'usb|mmc'
@@ -112,6 +126,7 @@ select_device() {
 # Helpers
 ## Mounting
 mount_partition() {
+  log_debug "Mounting partition $1" "INFO"
   local part="$1"
 
   MOUNT_POINT=$(mktemp -d)
@@ -138,37 +153,12 @@ mount_partition() {
 }
 
 ## Update Progress Bar
-# update_progress() {
-
-#     local pct="$1"
-#     local msg="$2"
-
-#     {
-#         echo "XXX"
-#         echo "$pct"
-#         echo "$msg"
-#         echo "XXX"
-#     } > "$PROGRESS_PIPE"
-
-# }
-
 update_progress() {
-    local percent="$1"
-    local text="$2"
+  log_debug "Updating progress: $1% - $2" "INFO"
+  local percent="$1"
+  local text="$2"
 
-    printf '%s\nXXX\n%s\nXXX\n' \
-        "$percent" \
-        "$text" >&3
-}
-
-# update_progress() {
-#     echo "Writing progress..."
-#     printf "%s\nXXX\n%s\nXXX\n" "$1" "$2" >&3
-#     echo "Progress written"
-# }
-
-## Debug Logging
-log_debug() {
-    local message="$1"
-    echo "$(date '+%Y-%m-%d %H:%M:%S') [DEBUG] $message" >> /tmp/debug.log
+  printf '%s\nXXX\n%s\nXXX\n' \
+      "$percent" \
+      "$text" >&3
 }
