@@ -62,15 +62,16 @@ sleep 1
 # Downloading
 update_progress 10 "Checking image cache..."
 if [[ ! -f "$CACHE_IMG" ]]; then
-  update_progress 15 "Downloading Raspberry Pi OS..."
+  update_progress 12 "Downloading Raspberry Pi OS..."
   wget -O "$CACHE_IMG" "$IMG_URL"
 fi
 sleep 1
 
 
 # Extracting
-update_progress 20 "Extracting image..."
+update_progress 15 "Extracting image..."
 TYPE=$(file -b "$CACHE_IMG")
+log_debug "Image type: $TYPE" "DEBUG"
 IMG_FILE=""
 
 if [[ "$TYPE" == *"boot sector"* ]] || [[ "$TYPE" == *"filesystem"* ]]; then
@@ -90,18 +91,9 @@ sleep 1
 
 
 # Locating
-update_progress 25 "Locating image file..."
+update_progress 20 "Locating image file..."
 if [[ -z "$IMG_FILE" ]]; then
-  IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f -name "*.img" | head -n1)
-
-  if [[ -z "$IMG_FILE" ]]; then
-    IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f \
-      ! -name "*.xz" \
-      ! -name "*.zip" \
-      -exec file {} \; | \
-      grep -i "boot sector\|filesystem" | \
-      head -n1 | cut -d: -f1)
-  fi
+  IMG_FILE=$(find "$WORKDIR" -maxdepth 1 -type f -name "image.*" | head -n1)
 fi
 
 if [[ -z "$IMG_FILE" ]]; then
@@ -112,7 +104,7 @@ sleep 1
 
 
 # Loop device setup
-update_progress 30 "Setting up loop device..."
+update_progress 25 "Setting up loop device..."
 LOOP_DEVICE=$(sudo losetup -Pf --show "$CACHE_IMG")
 BOOT_DEVICE="${LOOP_DEVICE}p1"
 ROOT_DEVICE="${LOOP_DEVICE}p2"
@@ -120,9 +112,11 @@ sleep 1
 
 
 # Flashing
-update_progress 35 "Flashing image to $DEVICE..."
+update_progress 30 "Flashing image to $DEVICE..."
 sudo dd if="$IMG_FILE" of="$DEVICE" bs=4M status=progress conv=fsync
-update_progress 55 "Flashing complete. Syncing..."
+sleep 1
+update_progress 35 "Flashing complete. Syncing..."
+sleep 1
 sync
 sleep 1
 
