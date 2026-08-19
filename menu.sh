@@ -36,7 +36,8 @@ CHOICE=$(menu "Main Menu" "Select an action" \
     4 "Show Current Config" \
     5 "Remove Known Hosts" \
     6 "Launch SSH Session" \
-    7 "Exit")
+    7 "Debug Log" \
+    8 "Exit")
 clear
 
 # Check if the user pressed Cancel or closed the dialog
@@ -104,6 +105,13 @@ EOF
     ssh ${USERNAME}@${IP_ADDRESS}
     ;;
 7)
+    DEBUG_LOG=$(sudo find "/tmp/" -type f \
+    -name "debug-script-raspberry-pi-sd-provisioning.log" \
+    2>/dev/null | head -n1)
+    echo "$DEBUG_LOG"
+    display "Debug Log" "$DEBUG_LOG"
+    ;;
+8)
     exit 0
     ;;
 
