@@ -51,6 +51,6 @@ To run the provisioning menu **inside VSCode**:
     - ./provision.sh: line 283: 269508 Killed
     - dialog --gauge "Starting..." 8 70 0 0<&3 (wd: Documents/Github/Operations/script-raspberry-pi-sd-provisioning)
     - Can't open input file Removing progress pipe...
-- TODO: Full code review & cleanup
 - FIXME: VSCode producing permission errors
-
+- TODO: Full code review & cleanup
+- FIXME: Need to reboot to clean up and rerun provisioning
