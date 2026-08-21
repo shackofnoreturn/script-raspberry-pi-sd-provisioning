@@ -13,11 +13,11 @@ CONFIG_FILE="$(dirname "$0")/config.env"
 # Create default configuration file if it doesn't exist
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" <<EOF
-HOSTNAME=shack-pi-001
+HOSTNAME=shack-dns-p001
 DEVICE=/dev/sdb
-IP_ADDRESS=10.0.0.50
+IP_ADDRESS=10.0.0.6
 GATEWAY=10.0.0.1
-DNS_SERVERS="10.0.0.1 1.1.1.1"
+DNS_SERVERS="10.0.0.1 10.0.0.6"
 USERNAME=shackadmin
 PASSWORD="your_secure_password_here"
 EOF
