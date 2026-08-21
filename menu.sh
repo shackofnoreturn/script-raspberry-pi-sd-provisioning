@@ -24,8 +24,8 @@ EOF
 fi
 
 # Includes
-source "$(dirname "$0")/lib/ui.sh"
 source "$CONFIG_FILE"
+source "$(dirname "$0")/lib/ui.sh"
 
 # Main menu loop
 while true; do
