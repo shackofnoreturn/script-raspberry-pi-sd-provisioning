@@ -1,5 +1,4 @@
 #!/bin/bash
-touch firstboot-debug.log.ok
 LOG=/boot/firstboot-debug.txt
 
 {
@@ -48,7 +47,7 @@ echo "===== END DEBUG ====="
 } > "$LOG" 2>&1
 
 # Self-remove after first successful run
-# systemctl disable firstboot-debug.service 2>/dev/null || true
-# rm -f /etc/systemd/system/firstboot-debug.service
-# rm -f /etc/systemd/system/multi-user.target.wants/firstboot-debug.service
-# rm -f /usr/local/sbin/firstboot-debug.sh
+systemctl disable firstboot-debug.service 2>/dev/null || true
+rm -f /etc/systemd/system/firstboot-debug.service
+rm -f /etc/systemd/system/multi-user.target.wants/firstboot-debug.service
+rm -f /usr/local/sbin/firstboot-debug.sh
