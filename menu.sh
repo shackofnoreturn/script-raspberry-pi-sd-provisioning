@@ -10,7 +10,7 @@
 set -euo pipefail
 CONFIG_FILE="$(dirname "$0")/config.env"
 
-# Create default configuration file if it doesn't exist
+# Default configuration
 if [ ! -f "$CONFIG_FILE" ]; then
     cat > "$CONFIG_FILE" <<EOF
 HOSTNAME=shack-dns-p001
@@ -67,19 +67,7 @@ while true; do
             ;;
 
         4)
-            TMPFILE=$(mktemp)
-            cat > "$TMPFILE" <<EOF
-Hostname      : $HOSTNAME
-Device        : $DEVICE
-IP Address    : $IP_ADDRESS
-Gateway       : $GATEWAY
-DNS Servers   : $DNS_SERVERS
-Username      : $USERNAME
-Password      : $PASSWORD
-EOF
-
-            text "Current Configuration" "$TMPFILE"
-            rm -f "$TMPFILE"
+            ./config-display.sh || true
             ;;
 
         5)
