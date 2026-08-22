@@ -27,44 +27,48 @@ fi
 source "$CONFIG_FILE"
 source "$(dirname "$0")/lib/ui.sh"
 
-# Main menu loop
+
+# Main menu
 while true; do
-CHOICE=$(menu "Main Menu" "Select an action" \
-    1 "Provision SD Card" \
-    2 "Retrieve Debug Data" \
-    3 "Configuration" \
-    4 "Show Current Config" \
-    5 "Remove Known Hosts" \
-    6 "Launch SSH Session" \
-    7 "Debug Log" \
-    8 "Exit")
-clear
+    if MAINMENU=$(menu "Main Menu" "Select an action" \
+        1 "Provision SD Card" \
+        2 "Retrieve Debug Data" \
+        3 "Configuration" \
+        4 "Show Current Config" \
+        5 "Remove Known Hosts" \
+        6 "Launch SSH Session" \
+        7 "Debug Log" \
+        8 "Exit"); then
+    
+        # Menu completed successfully
+        :
 
-# Check if the user pressed Cancel or closed the dialog
-RET=$?
-if [ $RET -ne 0 ]; then
+    else
+        # User cancelled or closed the dialog
+        clear
+        break
+    fi
+
     clear
-    break
-fi
 
-# Handle menu choices
-case $CHOICE in
-1)
-    ./provision.sh || true
-    ;;
+    # Handle choices
+    case $MAINMENU in
+        1)
+            ./provision.sh || true
+            ;;
 
-2)
-    ./debug.sh || true
-    ;;
+        2)
+            ./debug.sh || true
+            ;;
 
-3)
-    ./config.sh || true
-    source "$CONFIG_FILE"
-    ;;
+        3)
+            ./config.sh || true
+            source "$CONFIG_FILE"
+            ;;
 
-4)
-    TMPFILE=$(mktemp)
-    cat > "$TMPFILE" <<EOF
+        4)
+            TMPFILE=$(mktemp)
+            cat > "$TMPFILE" <<EOF
 Hostname      : $HOSTNAME
 Device        : $DEVICE
 IP Address    : $IP_ADDRESS
@@ -74,46 +78,46 @@ Username      : $USERNAME
 Password      : $PASSWORD
 EOF
 
-    text "Current Configuration" "$TMPFILE"
-    rm -f "$TMPFILE"
-    ;;
+            text "Current Configuration" "$TMPFILE"
+            rm -f "$TMPFILE"
+            ;;
 
-5)
-    remove_host() {
-        local host="$1"
-        local output
+        5)
+            remove_host() {
+                local host="$1"
+                local output
 
-        output=$(ssh-keygen -R "$host" 2>&1)
-        local rc=$?
+                output=$(ssh-keygen -R "$host" 2>&1)
+                local rc=$?
 
-        if [ $rc -ne 0 ]; then
-            error "Failed to remove known_hosts entry for $host."
-            return 1
-        fi
+                if [ $rc -ne 0 ]; then
+                    error "Failed to remove known_hosts entry for $host."
+                    return 1
+                fi
 
-        if grep -q "not found" <<<"$output"; then
-            error "No known_hosts entry for $host."
-        else
-            msg "Remove Known Host" "Removed known_hosts entry for $host"
-        fi
-    }
-    remove_host "$HOSTNAME"
-    remove_host "$IP_ADDRESS"
-    remove_host "[$IP_ADDRESS]:22"
-    ;;
-6)
-    ssh ${USERNAME}@${IP_ADDRESS}
-    ;;
-7)
-    DEBUG_LOG=$(sudo find "/tmp/" -type f \
-    -name "debug-script-raspberry-pi-sd-provisioning.log" \
-    2>/dev/null | head -n1)
-    echo "$DEBUG_LOG"
-    display "Debug Log" "$DEBUG_LOG"
-    ;;
-8)
-    exit 0
-    ;;
-
-esac
+                if grep -q "not found" <<<"$output"; then
+                    error "No known_hosts entry for $host."
+                else
+                    msg "Remove Known Host" "Removed known_hosts entry for $host"
+                fi
+            }
+            remove_host "$HOSTNAME"
+            remove_host "$IP_ADDRESS"
+            remove_host "[$IP_ADDRESS]:22"
+            ;;
+        6)
+            ssh ${USERNAME}@${IP_ADDRESS}
+            ;;
+        7)
+            DEBUG_LOG=$(sudo find "/tmp/" -type f \
+            -name "debug-script-raspberry-pi-sd-provisioning.log" \
+            2>/dev/null | head -n1)
+            echo "$DEBUG_LOG"
+            display "Debug Log" "$DEBUG_LOG"
+            ;;
+        8)
+            clear
+            exit 0
+            ;;
+    esac
 done
