@@ -77,11 +77,7 @@ while true; do
             ssh ${USERNAME}@${IP_ADDRESS} || true
             ;;
         7)
-            DEBUG_LOG=$(sudo find "/tmp/" -type f \
-            -name "debug-script-raspberry-pi-sd-provisioning.log" \
-            2>/dev/null | head -n1)
-            echo "$DEBUG_LOG"
-            display "Debug Log" "$DEBUG_LOG"
+            ./log.sh || true
             ;;
         8)
             clear
