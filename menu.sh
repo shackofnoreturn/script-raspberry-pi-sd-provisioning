@@ -74,7 +74,7 @@ while true; do
             ./remove-hosts.sh || true
             ;;
         6)
-            ssh ${USERNAME}@${IP_ADDRESS}
+            ssh ${USERNAME}@${IP_ADDRESS} || true
             ;;
         7)
             DEBUG_LOG=$(sudo find "/tmp/" -type f \
