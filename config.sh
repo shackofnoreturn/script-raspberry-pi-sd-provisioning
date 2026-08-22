@@ -15,7 +15,7 @@ source "$CONFIG_FILE"
 
 # Configuration menu loop
 while true; do
-CHOICE=$(menu "Configuration" "Select setting to edit" \
+CONFIGMENU=$(menu "Configuration" "Select setting to edit" \
     1 "Hostname: $HOSTNAME" \
     2 "Target Device: $DEVICE" \
     3 "IP Address: $IP_ADDRESS" \
@@ -31,8 +31,8 @@ if [ $RET -ne 0 ]; then
     exit 1
 fi
 
-# Handle menu choices
-case $CHOICE in
+# Cancel or dialog close
+case $CONFIGMENU in
 1)
 HOSTNAME=$(input "Hostname" "Enter the hostname for the Raspberry Pi" "$HOSTNAME")
 ;;
@@ -76,4 +76,3 @@ break
 
 esac
 done
-clear
