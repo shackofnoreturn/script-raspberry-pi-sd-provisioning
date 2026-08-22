@@ -53,4 +53,3 @@ To run the provisioning menu **inside VSCode**:
     - Can't open input file Removing progress pipe...
 - FIXME: VSCode producing permission errors
 - TODO: Full code review & cleanup
-- FIXME: Need to reboot to clean up and rerun provisioning
